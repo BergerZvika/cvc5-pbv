@@ -61,7 +61,6 @@ select, input[type=text], input[type=number], input[type=search] {
   border-radius: 6px; padding: 6px 8px; min-width: 0; max-width: 100%; }
 input#args { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; width: 100%; }
 input#timeout { width: 80px; }
-select#example { max-width: 150px; }
 button { font: inherit; border: 1px solid var(--border); background: var(--panel); color: var(--fg);
   padding: 6px 12px; border-radius: 6px; cursor: pointer; }
 button:hover { border-color: var(--accent); }
@@ -136,7 +135,8 @@ button.comp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
 .legend a { color: var(--accent); text-decoration: none; }
 .legend a:hover { text-decoration: underline; }
 /* benchmark browser */
-#bench-name { font-size: 12px; color: var(--muted); font-family: ui-monospace, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; max-width: 40%; }
+.bench-path { font: 600 12.5px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin: 0; min-width: 60px; flex: 1 1 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
 dialog#bench-dialog { width: min(860px, calc(100vw - 32px)); height: min(640px, calc(100vh - 48px)); padding: 0; border: 1px solid var(--border);
   border-radius: 10px; background: var(--panel); color: var(--fg); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
 dialog#bench-dialog[open] { display: flex; flex-direction: column; }
@@ -231,10 +231,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
   </section>
   <section class="pane">
     <div class="pane-head">
-      <h2>Input (SMT-LIB 2)</h2>
-      <span id="bench-name"></span>
-      <span class="spacer"></span>
-      <select id="example" aria-label="Load an example"><option value="">Examples…</option></select>
+      <h2 id="bench-name" class="bench-path"></h2>
       <button id="bench" title="Choose a benchmark of the paper">Benchmarks</button>
       <button id="load" title="Load a file from disk">Open</button>
       <input id="file" type="file" class="hidden" accept=".smt2,.smt,.txt">
@@ -301,103 +298,14 @@ const CONFIGS = [
 ];
 const CONFIG_BY_ID = Object.fromEntries(CONFIGS.map(c => [c[0], c]));
 
-const EXAMPLES = /*EXAMPLES-BEGIN*/[
- {
-  "group": "PBV (SAT'25)",
-  "name": "Alive: AndOrXor_2453",
-  "config": "cvc5-pbv",
-  "solver": "cvc5",
-  "path": "benchmarks/pbv/sat25/alive/AndOrXor_2453_values_0.smt2",
-  "text": "(set-logic PBV)\n(declare-fun %y () PBitVec)\n(declare-fun %x () PBitVec)\n(assert (not (= (not (pbvslt %x %y)) (pbvsge %x %y))))\n(check-sat)\n"
- },
- {
-  "group": "PBV (SAT'25)",
-  "name": "Alive: InstCombineShift366-1",
-  "config": "cvc5-pbv",
-  "solver": "cvc5",
-  "path": "benchmarks/pbv/sat25/alive/InstCombineShift366-1_values_0.smt2",
-  "text": "(set-logic PBV)\n(declare-fun C2 () PBitVec)\n(declare-fun C1 () PBitVec)\n(declare-fun %X () PBitVec)\n(assert (> (pbvsize %X) (pbvsize C2)))\n(assert (let ((_let_0 (pbvshl %X C1))) (let ((_let_1 (pzero_extend (- (pbvsize %X) (pbvsize C2)) C2))) (and (pbvult C1 (int_to_pbv (pbvsize %X) (pbvsize %X))) (pbvult C2 (int_to_pbv (pbvsize C2) (pbvsize C2))) (not (= (pbvshl (pextract _let_0 (- (pbvsize C2) 1) 0) C2) (pextract (pbvand (pbvshl _let_0 _let_1) (pbvshl (pbvsub (pbvshl (int_to_pbv (pbvsize %X) 1) (int_to_pbv (pbvsize %X) (pbvsize C2))) (int_to_pbv (pbvsize %X) 1)) _let_1)) (- (pbvsize C2) 1) 0)))))))\n(check-sat)\n"
- },
- {
-  "group": "PBV (SAT'25)",
-  "name": "IC: check_bvuge_bvor_kbit",
-  "config": "cvc5-pbv",
-  "solver": "cvc5",
-  "path": "benchmarks/pbv/sat25/ic/check_bvuge_bvor_kbit.smt2",
-  "text": "(set-logic PBV)\n(set-option :produce-models true)\n\n(declare-fun s () PBitVec)\n(declare-fun t () PBitVec)\n\n(define-fun udivtotal ((a PBitVec) (b PBitVec)) PBitVec\n  (ite (= b (int_to_pbv (pbvsize s) 0)) (pbvnot (int_to_pbv (pbvsize s) 0)) (pbvudiv a b))\n)\n(define-fun uremtotal ((a PBitVec) (b PBitVec)) PBitVec\n  (ite (= b (int_to_pbv (pbvsize s) 0)) a (pbvurem a b))\n)\n(define-fun min () PBitVec\n  (pbvnot (pbvlshr (pbvnot (int_to_pbv (pbvsize s) 0)) (int_to_pbv (pbvsize s) 1)))\n)\n(define-fun max () PBitVec\n  (pbvnot min)\n)\n\n(define-fun SC ((s PBitVec) (t PBitVec)) Bool\ntrue\n)\n\n(assert\n (not\n  (and\n  (=> (SC s t) (exists ((x PBitVec)) (pbvuge (pbvor x s) t)))\n  (=> (exists ((x PBitVec)) (pbvuge (pbvor x s) t)) (SC s t))\n  )\n )\n)\n(check-sat)\n"
- },
- {
-  "group": "PBV (SAT'25)",
-  "name": "Rewrite: test-pbv658",
-  "config": "cvc5+lr",
-  "solver": "cvc5",
-  "path": "benchmarks/pbv/sat25/rewrite/terms_size3/test-pbv658.smt2",
-  "text": "(set-logic PBV)\n(set-option :produce-models true)\n(set-option :incremental true)\n(declare-const s PBitVec)\n(declare-const t PBitVec)\n(assert (distinct (pbvand s (pbvshl (pbvnot (int_to_pbv (pbvsize s) 0)) t)) (pbvshl (pbvlshr s t) t)))\n(check-sat)\n(exit)\n"
- },
- {
-  "group": "PBV (SAT'25)",
-  "name": "SyRew: formulas_bvmul-100",
-  "config": "cvc5-pbv",
-  "solver": "cvc5",
-  "path": "benchmarks/pbv/sat25/syrew/formulas_bvmul-100.smt2",
-  "text": "(set-logic PBV)\n(declare-fun s () PBitVec)\n(assert (distinct (pbvult s (pbvand (int_to_pbv (pbvsize s) 1) (pbvmul s s))) (distinct s s)))\n(check-sat)\n"
- },
- {
-  "group": "PBV (SAT'25)",
-  "name": "Mutant (sat): test-pbv262",
-  "config": "cvc5-pbv",
-  "solver": "cvc5",
-  "path": "benchmarks/pbv/sat25/mut/cade19_mutant/terms_size3-sat-bvneg-to-bvnot/test-pbv262.smt2",
-  "text": "(set-logic PBV)\n(declare-const s PBitVec)\n(declare-const t PBitVec)\n(assert (distinct (pbvadd s (pbvnot (pbvand t (int_to_pbv (pbvsize s) 0)))) s))\n(check-sat)\n(exit)\n"
- },
- {
-  "group": "QF_PBV",
-  "name": "Single width: bv-term-small-rw_12",
-  "config": "cvc5-pbv",
-  "solver": "cvc5",
-  "path": "benchmarks/pbv/QF_PBV/QF_PBV_Single_bitwidth/20190311-bv-term-small-rw-Noetzli/bv-term-small-rw_12.smt2",
-  "text": "(set-info :smt-lib-version 2.6)\n(set-logic PBV)\n(set-info :source |\nGenerated by: Andres Noetzli, Andrew Reynolds, Haniel Barbosa, Aina Niemetz, Mathias Preiner, Clark Barrett, Cesare Tinelli\nGenerated on: 2018-11-08\nGenerator: CVC4\nApplication: Rewrite rule verification\nPublications: \"Syntax-Guided Rewrite Rule Enumeration for SMT Solvers\" by A. Noetzli, A. Reynolds, H. Barbosa, A. Niemetz, M. Preiner, C. Barrett, and C. Tinelli, SAT 2019.\n|)\n(set-info :license \"https://creativecommons.org/licenses/by/4.0/\")\n(set-info :category \"industrial\")\n(declare-fun s () PBitVec)\n(declare-fun t () PBitVec)\n(assert (not (= (pbvand t s) (pbvand s t))))\n(check-sat)\n(exit)\n"
- },
- {
-  "group": "QF_PBV",
-  "name": "Two widths: a176test0022",
-  "config": "cvc5-pbv",
-  "solver": "cvc5",
-  "path": "benchmarks/pbv/QF_PBV/QF_PBV_two_bitwidth/bench_ab/a176test0022.smt2",
-  "text": "(set-info :smt-lib-version 2.6)\n(set-logic PBV)\n(set-info :source |\nBit-vector benchmarks from Dawson Engler's tool contributed by Vijay Ganesh\n(vganesh@stanford.edu).  Translated into SMT-LIB format by Clark Barrett using\nCVC3.\n\n|)\n(set-info :category \"industrial\")\n(declare-fun n () PBitVec)\n(declare-fun c () PBitVec)\n(assert (not (pbvult n (int_to_pbv (pbvsize n) 16))))\n(check-sat)\n(exit)\n"
- },
- {
-  "group": "QF_PBV",
-  "name": "Multiple widths: adpcm",
-  "config": "cvc5-pbv",
-  "solver": "cvc5",
-  "path": "benchmarks/pbv/QF_PBV/QF_PBV_multiple_bitwidth/bmc-bv/adpcm.smt2",
-  "text": "(set-info :smt-lib-version 2.6)\n(set-logic PBV)\n(set-info :category \"industrial\")\n(set-info :source |\n  Generated using using the Low-Level Bounded Model Checker LLBMC.\n  C files used in the paper: Florian Merz, Stephan Falke, Carsten Sinz: LLBMC: Bounded Model Checking of C and C++ Programs Using a Compiler IR. VSTTE 2012: 146-161\n|)\n(assert (let (($x1 false)) (let (($x2 (not $x1))) $x2)))\n(check-sat)\n(exit)\n"
- },
- {
-  "group": "EIA (exponentiation)",
-  "name": "Rewrite: test-pbv0",
-  "config": "cvc5-exp",
-  "solver": "cvc5",
-  "path": "benchmarks/exp-eva/sat25-no-piand/rewrite/formulas_size2/test-pbv0_translate.smt2",
-  "text": "(set-logic ALL)\n(set-option :produce-models true)\n(declare-const k Int)\n(declare-const _pbv_s Int)\n(declare-const _pbv_t Int)\n(assert (distinct true true))\n(check-sat)\n(exit)\n"
- },
- {
-  "group": "CAV'26",
-  "name": "Alive AddSub_1043 (SMT-LIB, PBV)",
-  "config": "cvc5-pbv",
-  "solver": "cvc5",
-  "path": "benchmarks/cav26/Alive/smt2_pbv/AddSub_1043_values_0.smt2",
-  "text": "(set-logic PBV)\n(declare-const k Int)\n(declare-fun C1 () PBitVec)\n(assert (= (pbvsize C1) k))\n(declare-fun %Z () PBitVec)\n(assert (= (pbvsize %Z) k))\n(declare-fun %RHS () PBitVec)\n(assert (= (pbvsize %RHS) k))\n(assert (not (= (pbvadd (pbvadd (pbvxor (pbvand %Z C1) C1) (int_to_pbv k 1)) %RHS) (pbvsub %RHS (pbvor %Z (pbvnot C1))))))\n(check-sat)\n"
- }
-]/*EXAMPLES-END*/;
+const DEFAULT_INPUT = {"path": "benchmarks/pbv/sat25/alive/AndOrXor_2453_values_0.smt2", "text": "(set-logic PBV)\n(declare-fun %y () PBitVec)\n(declare-fun %x () PBitVec)\n(assert (not (= (not (pbvslt %x %y)) (pbvsge %x %y))))\n(check-sat)\n"};
 
 // ---------------------------------------------------------------------------
 // UI
 // ---------------------------------------------------------------------------
 const $ = id => document.getElementById(id);
 const cfgSel = $("config"), argsIn = $("args"), runBtn = $("run"), out = $("output");
-const statusEl = $("status"), resultEl = $("result"), exSel = $("example");
+const statusEl = $("status"), resultEl = $("result");
 
 const editor = CodeMirror.fromTextArea($("editor"), {
   lineNumbers: true, matchBrackets: true, mode: "commonlisp", indentUnit: 2, lineWrapping: false,
@@ -409,17 +317,6 @@ for (const [id, label, solver] of CONFIGS) {
   o.value = id; o.textContent = label; o.dataset.solver = solver;
   cfgSel.append(o);
 }
-function fillExamples() {
-  exSel.length = 1;
-  const groups = {};
-  for (const [i, ex] of EXAMPLES.entries()) (groups[ex.group] ||= []).push([i, ex]);
-  for (const [g, list] of Object.entries(groups)) {
-    const og = document.createElement("optgroup"); og.label = g;
-    for (const [i, ex] of list) { const o = document.createElement("option"); o.value = i; o.textContent = ex.name; og.append(o); }
-    exSel.append(og);
-  }
-}
-fillExamples();
 
 // "Custom" appears in the configuration list only while the arguments match no preset.
 CONFIG_BY_ID.custom = ["custom", "Custom", "cvc5", "", ""];
@@ -512,15 +409,11 @@ function onCompClick(e) {
 document.querySelector(".arch").addEventListener("click", onCompClick);
 argsIn.addEventListener("input", syncConfigFromArgs);
 
-exSel.addEventListener("change", () => {
-  const ex = EXAMPLES[+exSel.value];
-  exSel.value = "";
-  if (!ex) return;
-  editor.setValue(ex.text);
-  $("bench-name").textContent = ex.path || ""; $("bench-name").title = ex.path || "";
-  if (ex.config && CONFIG_BY_ID[ex.config]) { applyConfig(ex.config, false); cfgSel.dataset.prev = ex.config; }
-});
-
+function setInputName(name) {
+  const el = $("bench-name"); el.replaceChildren();
+  const b = document.createElement("bdi"); b.dir = "ltr"; b.textContent = name || "Input"; el.append(b);
+  el.title = name || "";
+}
 $("load").onclick = () => $("file").click();
 
 // ---------------------------------------------------------------------------
@@ -596,7 +489,7 @@ async function openBenchmark(path) {
     const r = await fetch("benchmarks/" + path.split("/").map(encodeURIComponent).join("/"));
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     editor.setValue(await r.text());
-    $("bench-name").textContent = path; $("bench-name").title = path;
+    setInputName("benchmarks/" + path);
     $("bench-dialog").close();
   } catch (err) { $("bd-foot").textContent = `Could not load ${path}: ${err.message}`; }
 }
@@ -623,7 +516,7 @@ $("bd-search").addEventListener("input", () => { clearTimeout(benchSearchTimer);
 $("file").onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
   editor.setValue(await f.text());
-  $("bench-name").textContent = f.name;
+  setInputName(f.name);
   e.target.value = "";
 };
 $("download").onclick = () => {
@@ -889,8 +782,8 @@ async function run() {
 // ---------------------------------------------------------------------------
 (async () => {
   applyConfig(CONFIGS[0][0], false);
-  const ex = EXAMPLES.find(e => e.solver === "cvc5");
-  editor.setValue(ex ? ex.text : "(set-logic PBV)\n(declare-fun x () PBitVec)\n(assert (not (= (pbvand x x) x)))\n(check-sat)\n");
+  editor.setValue(DEFAULT_INPUT.text);
+  setInputName(DEFAULT_INPUT.path);
   cfgSel.dataset.prev = cfgSel.value;
   if (location.protocol === "file:") { log(FILE_PROTOCOL_HELP + "\n", "err"); setStatus("Cannot run from file://"); }
 })();
