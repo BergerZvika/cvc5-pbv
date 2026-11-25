@@ -302,7 +302,7 @@ const CONFIGS = [
 ];
 const CONFIG_BY_ID = Object.fromEntries(CONFIGS.map(c => [c[0], c]));
 
-const DEFAULT_INPUT = {"path": "benchmarks/pbv/sat25/alive/AndOrXor_2453_values_0.smt2", "text": "(set-logic PBV)\n(declare-fun %y () PBitVec)\n(declare-fun %x () PBitVec)\n(assert (not (= (not (pbvslt %x %y)) (pbvsge %x %y))))\n(check-sat)\n"};
+const DEFAULT_INPUT = {"path": "pbv/sat25/alive/AndOrXor_2453_values_0.smt2", "text": "(set-logic PBV)\n(declare-fun %y () PBitVec)\n(declare-fun %x () PBitVec)\n(assert (not (= (not (pbvslt %x %y)) (pbvsge %x %y))))\n(check-sat)\n"};
 
 // ---------------------------------------------------------------------------
 // UI
@@ -493,7 +493,7 @@ async function openBenchmark(path) {
     const r = await fetch("benchmarks/" + path.split("/").map(encodeURIComponent).join("/"));
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     editor.setValue(await r.text());
-    setInputName("benchmarks/" + path);
+    setInputName(path);
     $("bench-dialog").close();
   } catch (err) { $("bd-foot").textContent = `Could not load ${path}: ${err.message}`; }
 }
