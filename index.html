@@ -793,7 +793,8 @@ function compileSolver(name) {
 // ---------------------------------------------------------------------------
 const setupEl = $("setup");
 const fmtMB = n => (n / 1e6).toFixed(1);
-let setupFor = null, setupShowTimer = 0, setupHideTimer = 0;
+let setupFor = null, setupShowTimer = 0, setupHideTimer = 0, setupShownAt = 0;
+const SETUP_MIN_MS = 3000;   // the first-run card stays at least this long
 function setupStep(step, state) {
   const li = setupEl.querySelector(`[data-step="${step}"]`);
   li.classList.toggle("active", state === "active"); li.classList.toggle("done", state === "done");
@@ -828,7 +829,7 @@ function showSetup(name, compact) {
   for (const st of ["download", "compile", "start"]) setupStep(st, null);
   $("st-bar").style.width = "0%";
   $("st-dl").textContent = `${name} for WebAssembly · ${fmtMB(SOLVERS[name].size || 0)} MB`;
-  setupEl.hidden = false;
+  setupEl.hidden = false; setupShownAt = performance.now();
   requestAnimationFrame(() => setupEl.classList.add("show"));
   if (loadState[name]) setupUpdate(name, loadState[name]);
 }
@@ -842,10 +843,12 @@ function hideSetup(success) {
     $("setup-text").textContent = `${setupFor} is installed in this browser. Your result is on its way.`;
   }
   setupFor = null;
+  // keep the ready state visible briefly; the first-run card stays at least SETUP_MIN_MS in total
+  const minLeft = setupEl.classList.contains("compact") ? 0 : SETUP_MIN_MS - (performance.now() - setupShownAt);
   setupHideTimer = setTimeout(() => {
     setupEl.classList.remove("show");
     setupHideTimer = setTimeout(() => { setupEl.hidden = true; }, 380);
-  }, success ? 900 : 0);
+  }, success ? Math.max(900, minLeft) : 0);
 }
 
 const EMSCRIPTEN_WORKER = `
