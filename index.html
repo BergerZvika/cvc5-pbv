@@ -105,6 +105,14 @@ button:disabled { opacity: .55; cursor: default; }
   font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); border-radius: 0 0 8px 8px; }
 #output .err { color: var(--err); }
 #output .meta { color: var(--muted); }
+#output .model-hint { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent); font: 13px/1.4 system-ui, sans-serif; white-space: normal; }
+#output .model-hint svg { color: var(--accent); flex: none; }
+#output .model-hint span { flex: 1 1 220px; }
+#output .model-hint code { font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding: 1px 4px; border-radius: 4px;
+  background: var(--panel); border: 1px solid var(--border); }
+#output .model-hint button { padding: 4px 12px; }
 .status { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 .result { font-weight: 700; font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; }
 .result.unsat, .result.sat { color: var(--ok); }
@@ -496,7 +504,10 @@ function applyConfig(id, keepArgs) {
   const c = CONFIG_BY_ID[id] || CONFIGS[0];
   if (c[0] !== "custom") customOpt.remove();
   cfgSel.value = c[0];
-  if (!keepArgs) argsIn.value = [BASE, c[3]].filter(Boolean).join(" ");
+  if (!keepArgs) {   // a new preset keeps output-only flags such as --produce-models
+    const keep = splitArgs(argsIn.value).filter(t => OUTPUT_FLAGS.test(t)).join(" ");
+    argsIn.value = [BASE, c[3], keep].filter(Boolean).join(" ");
+  }
   const s = SOLVERS[c[2]];
   editor.setOption("mode", s.mode);
   renderArch();
@@ -547,7 +558,9 @@ function compToggle(toks, c) {
 }
 function compFlags(c) { return c.type === "flags" ? c.names.join(" ") : c.type === "flag" ? c.name : `${c.name}=${c.value}`; }
 const quoteArg = a => (/[\s"']/.test(a) || a === "" ? JSON.stringify(a) : a);
-const normArgs = s => splitArgs(s).filter(t => !BASE.split(" ").includes(t)).map(t => t.includes("=") ? t.replace(/=(.*)$/, (m, v) => "=" + v.split(",").sort().join(",")) : t).sort().join(" ");
+// preset matching ignores the default flags and output-only flags such as --produce-models
+const OUTPUT_FLAGS = /^(--produce-models(=true)?|-m)$/;
+const normArgs = s => splitArgs(s).filter(t => !BASE.split(" ").includes(t) && !OUTPUT_FLAGS.test(t)).map(t => t.includes("=") ? t.replace(/=(.*)$/, (m, v) => "=" + v.split(",").sort().join(",")) : t).sort().join(" ");
 
 function renderArch() {
   const toks = splitArgs(argsIn.value);
@@ -854,6 +867,7 @@ function flash(btn, text) { const t = btn.textContent; btn.textContent = text; s
 let pending = [], scheduled = false, outBytes = 0;
 const OUT_LIMIT = 4 << 20;
 function log(text, cls) {
+  if (cls === "node") { pending.push([text, cls]); if (!scheduled) { scheduled = true; requestAnimationFrame(flush); } return; }
   if (outBytes > OUT_LIMIT) return;
   outBytes += text.length;
   if (outBytes > OUT_LIMIT) text += "\n[output truncated]\n";
@@ -865,7 +879,8 @@ function flush() {
   const atBottom = out.scrollTop + out.clientHeight >= out.scrollHeight - 8;
   const frag = document.createDocumentFragment();
   for (const [t, cls] of pending) {
-    if (cls) { const s = document.createElement("span"); s.className = cls; s.textContent = t; frag.append(s); }
+    if (cls === "node") frag.append(t);
+    else if (cls) { const s = document.createElement("span"); s.className = cls; s.textContent = t; frag.append(s); }
     else frag.append(t);
   }
   pending = [];
@@ -1055,8 +1070,41 @@ function finish(result, extra) {
   if (extra) log(extra, "err");
   log(`\n[${result} after ${secs} s wall time]\n`, "meta");
   setResult(result);
+  if (result === "sat") modelHint();
   setStatus(`Finished in ${secs} s`);
   runBtn.textContent = "Run"; runBtn.classList.add("primary");
+}
+// sat without a model: suggest --produce-models and (get-model), and offer to run again with both
+const hasProduceModels = () => splitArgs(argsIn.value).some(a => /^(--produce-models(=true)?|-m)$/.test(a));
+const hasGetModel = () => /\(\s*get-model\s*\)/.test(editor.getValue().replace(/;[^\n]*/g, ""));
+function modelHint() {
+  const flag = hasProduceModels(), cmd = hasGetModel();
+  if (flag && cmd) return;
+  const code = t => Object.assign(document.createElement("code"), { textContent: t });
+  const box = document.createElement("div"); box.className = "model-hint";
+  box.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/><path d="M8 7.2v4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  const msg = document.createElement("span");
+  msg.append("Want to see the satisfying assignment? Run with ");
+  if (!flag) msg.append(code("--produce-models"));
+  if (!flag && !cmd) msg.append(" and ");
+  if (!cmd) msg.append(code("(get-model)"));
+  msg.append(".");
+  const btn = Object.assign(document.createElement("button"), { type: "button", className: "primary", textContent: "Show model" });
+  btn.onclick = runWithModel;
+  box.append(msg, btn);
+  log(box, "node");
+}
+function runWithModel() {
+  if (running) return;
+  if (!hasProduceModels()) { argsIn.value = (argsIn.value.trim() + " --produce-models").trim(); syncConfigFromArgs(); }
+  if (!hasGetModel()) {
+    // after the last (check-sat), else at the end
+    const text = editor.getValue(), re = /\(\s*check-sat\s*\)/g;
+    let m, last = null; while ((m = re.exec(text))) last = m;
+    const at = last ? last.index + last[0].length : text.length;
+    editor.replaceRange((last ? "\n" : (text.endsWith("\n") || !text ? "" : "\n")) + "(get-model)", editor.posFromIndex(at));
+  }
+  run();
 }
 function cancel(reason) { if (running) finish(reason === "timeout" ? "timeout" : "cancelled"); }
 
