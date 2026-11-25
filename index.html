@@ -15,18 +15,21 @@
   --bg: #f7f7f5; --panel: #ffffff; --fg: #1d1d1f; --muted: #6b6b70; --border: #dcdcdf;
   --accent: #2f6fde; --accent-fg: #ffffff; --ok: #1f8a4c; --bad: #c0392b; --warn: #b7791f;
   --code-bg: #fbfbfa; --err: #b03a2e;
+  --old-bg: #dfe8fb; --old-bd: #3b6fd4; --new-bg: #fde3c4; --new-bd: #d97a12;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #141416; --panel: #1c1c1f; --fg: #e8e8ea; --muted: #9a9aa2; --border: #33333a;
     --accent: #5b8ff0; --accent-fg: #0b0b0c; --ok: #4cc27f; --bad: #f07167; --warn: #e0a84a;
     --code-bg: #18181b; --err: #f08a80;
+    --old-bg: #1f2f52; --old-bd: #6f9cf2; --new-bg: #4a3014; --new-bd: #f0a24e;
   }
 }
 :root[data-theme="dark"] {
   --bg: #141416; --panel: #1c1c1f; --fg: #e8e8ea; --muted: #9a9aa2; --border: #33333a;
   --accent: #5b8ff0; --accent-fg: #0b0b0c; --ok: #4cc27f; --bad: #f07167; --warn: #e0a84a;
   --code-bg: #18181b; --err: #f08a80;
+  --old-bg: #1f2f52; --old-bd: #6f9cf2; --new-bg: #4a3014; --new-bd: #f0a24e;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--fg);
@@ -86,6 +89,38 @@ button:disabled { opacity: .55; cursor: default; }
 .spin { width: 10px; height: 10px; border: 2px solid var(--muted); border-top-color: transparent; border-radius: 50%; animation: s 0.8s linear infinite; }
 @keyframes s { to { transform: rotate(360deg); } }
 .hidden { display: none !important; }
+/* architecture figure */
+.arch { grid-column: 1 / -1; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px 12px; min-width: 0; }
+.arch-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 8px; }
+.arch-head h2 { font-size: 13px; margin: 0; font-weight: 600; font-style: italic; }
+.arch-head span { font-size: 12px; color: var(--muted); }
+.arch-scroll { overflow-x: auto; padding-bottom: 4px; }
+.arch-fig { display: inline-flex; flex-direction: column; align-items: center; min-width: 100%; }
+.cvc5-box { display: flex; align-items: center; gap: 0; border: 1.5px solid var(--fg); border-radius: 8px; padding: 14px 14px; }
+.arch-cap { font-size: 13px; margin-top: 3px; }
+.phi { font: italic 18px/1 "Times New Roman", serif; padding-right: 2px; }
+.arrow { flex: none; width: 26px; height: 12px; color: var(--fg); }
+.comp { font: 15px/1.15 "Times New Roman", Times, serif; color: var(--fg); min-width: 54px; min-height: 46px;
+  padding: 6px 10px; border-radius: 6px; border: 1.5px dashed var(--muted); background: transparent;
+  display: inline-flex; align-items: center; justify-content: center; text-align: center; opacity: .55;
+  transition: background .15s, border-color .15s, opacity .15s, box-shadow .15s; }
+.comp.small { font-size: 13px; min-height: 30px; min-width: 0; padding: 3px 10px; }
+.comp sub { font-size: .7em; } .comp sup { font-size: .65em; }
+.comp.on { opacity: 1; border-style: solid; }
+.comp.old.on { background: var(--old-bg); border-color: var(--old-bd); }
+.comp.new.on { background: var(--new-bg); border-color: var(--new-bd); }
+button.comp:hover { border-color: var(--accent); opacity: 1; box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+button.comp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.comp.fixed { cursor: default; }
+.solve-box { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 8px 8px; min-height: 0; }
+.solve-box .comp-title { font: 15px "Times New Roman", serif; }
+.sc { font-variant: small-caps; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: center; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 5px; border: 1.5px solid; }
+.legend .l-old { background: var(--old-bg); border-color: var(--old-bd); }
+.legend .l-new { background: var(--new-bg); border-color: var(--new-bd); }
+.legend .l-off { border-style: dashed; border-color: var(--muted); }
+
 </style>
 <script>
 (function () {
@@ -146,6 +181,36 @@ button:disabled { opacity: .55; cursor: default; }
       <button id="clear" title="Clear output">Clear</button>
     </div>
     <pre id="output"></pre>
+  </section>
+  <section class="arch" aria-labelledby="arch-title">
+    <div class="arch-head">
+      <h2 id="arch-title">Architecture of this paper</h2>
+      <span>Highlighted components are on in the current arguments. Click a component to add or remove its flags.</span>
+    </div>
+    <div class="arch-scroll">
+      <div class="arch-fig">
+        <div class="cvc5-box">
+          <span class="phi">&phi;</span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <button class="comp old" data-comp="rwb" type="button">&#x211B;&#x1D4B2;<sub>B</sub></button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <button class="comp new" data-comp="lrwb" type="button">&#x2112;&#x211B;&#x1D4B2;<sub>B</sub></button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <span class="comp old fixed on" title="Translation T (always on)">&#x1D4AF;</span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <button class="comp new" data-comp="red" type="button" style="font-size:13px">exp<br>reducer</button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <button class="comp old" data-comp="lrwa" type="button">&#x2112;&#x211B;&#x1D4B2;<sub>A</sub></button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <button class="comp new" data-comp="fermat" type="button" style="font-size:13px">Fermat</button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <div class="comp old solve-box" data-comp="solve" role="button" tabindex="0">
+            <span class="comp-title"><span class="sc">Solve</span><sub>&#x22C6;</sub></span>
+            <button class="comp old small" data-comp="exp" type="button">exp-solver</button>
+            <button class="comp old small" data-comp="iand" type="button">&amp;<sup>&#x2115;</sup>-solver</button>
+          </div>
+        </div>
+        <div class="arch-cap">cvc5</div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i class="l-old"></i>generalized component of [SAT'25]</span>
+      <span><i class="l-new"></i>new in this paper</span>
+      <span><i class="l-off"></i>off in the current arguments</span>
+    </div>
   </section>
 </main>
 
@@ -301,18 +366,100 @@ function fillExamples() {
 }
 fillExamples();
 
+// "Custom" appears in the configuration list only while the arguments match no preset.
+CONFIG_BY_ID.custom = ["custom", "Custom", "cvc5", "", ""];
+const customOpt = document.createElement("option");
+customOpt.value = "custom"; customOpt.textContent = "Custom";
+
 function currentConfig() { return CONFIG_BY_ID[cfgSel.value]; }
 function applyConfig(id, keepArgs) {
   const c = CONFIG_BY_ID[id] || CONFIGS[0];
+  if (c[0] !== "custom") customOpt.remove();
   cfgSel.value = c[0];
   if (!keepArgs) argsIn.value = c[3];
   const s = SOLVERS[c[2]];
   editor.setOption("mode", s.mode);
+  renderArch();
 }
 cfgSel.addEventListener("change", () => {
+  if (cfgSel.value === "custom") return;
   applyConfig(cfgSel.value, false);
   cfgSel.dataset.prev = cfgSel.value;
 });
+
+// ---------------------------------------------------------------------------
+// Architecture figure: which components the arguments turn on, and toggling them
+// ---------------------------------------------------------------------------
+const COMPONENTS = {
+  rwb:    { type: "flag",  name: "--pbv-rewrites",               what: "PBV rewriter (RARE rules)" },
+  lrwb:   { type: "list",  name: "--learned-rewrite-rules", value: "pbv", what: "learned PBV rewrites" },
+  red:    { type: "opt",   name: "--exp-preprocess", value: "multiply", what: "exp reducer (preprocessing)" },
+  lrwa:   { type: "list",  name: "--learned-rewrite-rules", value: "int", what: "learned integer rewrites (mod reducer)" },
+  fermat: { type: "flag",  name: "--fermat-little-theorem",      what: "Fermat's little theorem" },
+  solve:  { type: "flags", names: BASE.split(" "),               what: "Solve* (non-linear solver options of the paper)" },
+  exp:    { type: "opt",   name: "--exp-solver", value: "rewrites,lemmas,phasing", what: "exp solver" },
+  iand:   { type: "opt",   name: "--piand-lemmas", value: PIAND.split("=")[1], what: "parametric iand lemmas" },
+};
+const optTok = (toks, name) => toks.findIndex(t => t.startsWith(name + "="));
+function compOn(toks, c) {
+  switch (c.type) {
+    case "flag":  return toks.includes(c.name);
+    case "flags": return c.names.every(n => toks.includes(n));
+    case "opt":   return optTok(toks, c.name) >= 0;
+    case "list": { const i = optTok(toks, c.name); return i >= 0 && toks[i].split("=")[1].split(",").includes(c.value); }
+  }
+}
+function compToggle(toks, c) {
+  const on = compOn(toks, c);
+  switch (c.type) {
+    case "flag":  return on ? toks.filter(t => t !== c.name) : [...toks, c.name];
+    case "flags": return on ? toks.filter(t => !c.names.includes(t)) : [...toks, ...c.names.filter(n => !toks.includes(n))];
+    case "opt":   return on ? toks.filter(t => !t.startsWith(c.name + "=")) : [...toks, `${c.name}=${c.value}`];
+    case "list": {
+      const i = optTok(toks, c.name);
+      if (i < 0) return [...toks, `${c.name}=${c.value}`];
+      let vals = toks[i].split("=")[1].split(",").filter(Boolean);
+      vals = on ? vals.filter(v => v !== c.value) : [...vals, c.value];
+      const out = [...toks];
+      if (vals.length) out[i] = `${c.name}=${vals.join(",")}`; else out.splice(i, 1);
+      return out;
+    }
+  }
+}
+function compFlags(c) { return c.type === "flags" ? c.names.join(" ") : c.type === "flag" ? c.name : `${c.name}=${c.value}`; }
+const quoteArg = a => (/[\s"']/.test(a) || a === "" ? JSON.stringify(a) : a);
+const normArgs = s => splitArgs(s).map(t => t.includes("=") ? t.replace(/=(.*)$/, (m, v) => "=" + v.split(",").sort().join(",")) : t).sort().join(" ");
+
+function renderArch() {
+  const toks = splitArgs(argsIn.value);
+  for (const el of document.querySelectorAll("[data-comp]")) {
+    const c = COMPONENTS[el.dataset.comp], on = compOn(toks, c);
+    el.classList.toggle("on", on);
+    el.setAttribute("aria-pressed", String(on));
+    el.title = `${c.what}: ${on ? "on" : "off"} — click to ${on ? "remove" : "add"} ${compFlags(c)}`;
+  }
+}
+// select the preset that the arguments match, or "Custom"
+function syncConfigFromArgs() {
+  const n = normArgs(argsIn.value);
+  const match = CONFIGS.find(c => normArgs(c[3]) === n);
+  if (match) { customOpt.remove(); cfgSel.value = match[0]; }
+  else { if (!customOpt.parentNode) cfgSel.append(customOpt); cfgSel.value = "custom"; }
+  cfgSel.dataset.prev = cfgSel.value;
+  renderArch();
+}
+function onCompClick(e) {
+  const el = e.target.closest("[data-comp]");
+  if (!el) return;
+  e.stopPropagation();
+  argsIn.value = compToggle(splitArgs(argsIn.value), COMPONENTS[el.dataset.comp]).map(quoteArg).join(" ");
+  syncConfigFromArgs();
+}
+document.querySelector(".arch").addEventListener("click", onCompClick);
+document.querySelector(".solve-box").addEventListener("keydown", e => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("solve-box")) { e.preventDefault(); onCompClick(e); }
+});
+argsIn.addEventListener("input", syncConfigFromArgs);
 
 exSel.addEventListener("change", () => {
   const ex = EXAMPLES[+exSel.value];
