@@ -191,6 +191,10 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *
 .cvc5-box { display: flex; align-items: center; gap: 0; border: 1.5px solid var(--fg); border-radius: 8px; padding: 5px 10px; }
 .arch-cap { font-size: 12px; margin-top: 1px; line-height: 1.2; }
 .phi { font: italic 18px/1 "Times New Roman", serif; padding-right: 2px; }
+button.phi { background: none; border: 0; color: var(--fg); cursor: pointer; border-radius: 50%; min-width: 0;
+  width: 30px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; margin-right: 2px;
+  transition: background .15s, color .15s, transform .15s; }
+button.phi:hover, button.phi:focus-visible { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); transform: scale(1.12); outline: none; }
 .arrow { flex: none; width: 26px; height: 12px; color: var(--fg); }
 .comp { font: 15px/1.15 "Times New Roman", Times, serif; color: var(--fg); min-width: 50px; min-height: 34px;
   padding: 4px 10px; border-radius: 6px; border: 1.5px dashed var(--muted); background: transparent;
@@ -342,7 +346,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
   <div class="arch">
     <div class="arch-scroll">
       <div class="arch-fig">
-        <span class="phi">&phi;</span><svg class="arrow in" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+        <button type="button" class="phi" data-sec="phi" aria-haspopup="dialog" title="The input formula: the theory of parametric bit-vectors (Table 1 of the paper)" aria-label="The input formula: show Table 1 of the paper">&phi;</button><svg class="arrow in" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
         <div class="cvc5-box">
           <span class="cw"><button class="comp old" data-comp="rwb" type="button">&#x211B;&#x1D4B2;<sub>B</sub></button><button class="secref" type="button" data-sec="rwb" aria-haspopup="dialog" title="About this component: Section 5.1 of the paper" aria-label="About this component (Section 5.1 of the paper)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/><path d="M8 7.2v4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
           <span class="cw"><button class="comp new" data-comp="lrwb" type="button">&#x2112;&#x211B;&#x1D4B2;<sub>B</sub></button><button class="secref" type="button" data-sec="lrwb" aria-haspopup="dialog" title="About this component: Section 5.2 of the paper" aria-label="About this component (Section 5.2 of the paper)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/><path d="M8 7.2v4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
@@ -635,7 +639,7 @@ async function showPaper(comp) {
     paperBody.textContent = location.protocol === "file:" ? FILE_PROTOCOL_HELP : String(e);
   }
 }
-document.querySelectorAll(".secref").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); showPaper(b.dataset.sec); }));
+document.querySelectorAll(".secref, button.phi").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); showPaper(b.dataset.sec); }));
 $("paper-close").onclick = () => showPaper(null);
 paperEl.addEventListener("close", () => { paperOpen = null; });
 paperEl.addEventListener("click", e => { if (e.target === e.currentTarget) paperEl.close(); });   // click on the backdrop
