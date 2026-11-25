@@ -87,8 +87,6 @@ button:disabled { opacity: .55; cursor: default; }
 @keyframes s { to { transform: rotate(360deg); } }
 .desc { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; margin-top: -4px; }
 .desc code { font-family: ui-monospace, monospace; }
-footer { padding: 0 16px 20px; color: var(--muted); font-size: 12px; }
-footer a { color: var(--accent); }
 .hidden { display: none !important; }
 </style>
 <script>
@@ -104,7 +102,6 @@ footer a { color: var(--accent); }
 <header>
   <div class="titles">
     <h1>PBV Solver Playground</h1>
-    <p>Solvers from the <em>Parametric Bit-Vectors in cvc5</em> artifact, compiled to WebAssembly and run locally in your browser.</p>
   </div>
   <button id="theme" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">
     <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -154,11 +151,6 @@ footer a { color: var(--accent); }
     <pre id="output"></pre>
   </section>
 </main>
-<footer>
-  The first run of a solver downloads its WebAssembly binary (cvc5 is ~19&nbsp;MB, cached afterwards).
-  Runs are limited by browser memory (4&nbsp;GB) and are slower than the native binaries, so timings are not comparable to the paper.
-  Paper configurations and flags: <code>scripts/run_experiments_paper-tables.sh</code>.
-</footer>
 
 <script>
 "use strict";
