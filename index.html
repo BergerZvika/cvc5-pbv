@@ -189,7 +189,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
   <div class="bar">
     <div class="field grow">
       <label for="args">Arguments <span title="{file} is replaced by the input file; otherwise the file is appended">(input file: <code>{file}</code>)</span></label>
-      <input id="args" type="text" spellcheck="false" autocomplete="off" placeholder="--nl-ext-tplanes --full-saturate-quant are always added">
+      <input id="args" type="text" spellcheck="false" autocomplete="off">
     </div>
     <div class="field">
       <label for="timeout">Timeout (s)</label>
@@ -332,7 +332,7 @@ function applyConfig(id, keepArgs) {
   const c = CONFIG_BY_ID[id] || CONFIGS[0];
   if (c[0] !== "custom") customOpt.remove();
   cfgSel.value = c[0];
-  if (!keepArgs) argsIn.value = c[3];
+  if (!keepArgs) argsIn.value = [BASE, c[3]].filter(Boolean).join(" ");
   const s = SOLVERS[c[2]];
   editor.setOption("mode", s.mode);
   renderArch();
@@ -383,7 +383,7 @@ function compToggle(toks, c) {
 }
 function compFlags(c) { return c.type === "flags" ? c.names.join(" ") : c.type === "flag" ? c.name : `${c.name}=${c.value}`; }
 const quoteArg = a => (/[\s"']/.test(a) || a === "" ? JSON.stringify(a) : a);
-const normArgs = s => splitArgs(s).map(t => t.includes("=") ? t.replace(/=(.*)$/, (m, v) => "=" + v.split(",").sort().join(",")) : t).sort().join(" ");
+const normArgs = s => splitArgs(s).filter(t => !BASE.split(" ").includes(t)).map(t => t.includes("=") ? t.replace(/=(.*)$/, (m, v) => "=" + v.split(",").sort().join(",")) : t).sort().join(" ");
 
 function renderArch() {
   const toks = splitArgs(argsIn.value);
