@@ -88,7 +88,7 @@ button:disabled { opacity: .55; cursor: default; }
 .pane-head h2 { font-size: 13px; margin: 0; font-weight: 600; }
 .pane-head .spacer { flex: 1; }
 .CodeMirror { height: 62vh; min-height: 300px; background: var(--code-bg); color: var(--fg);
-  font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; border-radius: 0 0 8px 8px; }
+  font: var(--in-fs, 13px)/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; border-radius: 0 0 8px 8px; }
 .CodeMirror-gutters { background: var(--code-bg); border-right: 1px solid var(--border); }
 .CodeMirror-linenumber { color: var(--muted); }
 .CodeMirror-cursor { border-left-color: var(--fg); }
@@ -102,8 +102,15 @@ button:disabled { opacity: .55; cursor: default; }
 .CodeMirror-matchingbracket { color: var(--accent) !important; text-decoration: underline; }
 .out-body { position: relative; }
 #output { margin: 0; padding: 10px; height: 62vh; min-height: 300px; overflow: auto; white-space: pre-wrap; word-break: break-word;
-  font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); border-radius: 0 0 8px 8px; }
+  font: var(--out-fs, 13px)/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); border-radius: 0 0 8px 8px; }
 #output .err { color: var(--err); }
+/* text size -/+ in the pane headers */
+.zoom { display: inline-flex; flex: none; }
+.zoom button { padding: 4px 7px; min-width: 0; font-size: 12px; line-height: 1.2; }
+.zoom button .za { font-weight: 650; margin-right: 1px; }
+.zoom button[data-step="-1"] { border-radius: 6px 0 0 6px; } .zoom button[data-step="-1"] .za { font-size: 10px; }
+.zoom button[data-step="1"] { border-radius: 0 6px 6px 0; margin-left: -1px; } .zoom button[data-step="1"] .za { font-size: 13px; }
+.zoom button:disabled { opacity: .4; cursor: default; }
 #output .meta { color: var(--muted); }
 #output .model-hint { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; padding: 8px 10px;
   border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); border-radius: 8px;
@@ -367,6 +374,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <button id="load" title="Load a file from disk">Open</button>
       <input id="file" type="file" class="hidden" accept=".smt2,.smt,.txt">
       <button id="download" title="Download the input">Save</button>
+      <span class="zoom" role="group" aria-label="Input text size" data-zoom="in"><button type="button" data-step="-1" title="Smaller input text" aria-label="Smaller input text"><span class="za">A</span>&minus;</button><button type="button" data-step="1" title="Larger input text" aria-label="Larger input text"><span class="za">A</span>+</button></span>
     </div>
     <textarea id="editor"></textarea>
   </section>
@@ -380,6 +388,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <span id="status" class="status">Ready</span>
       <button id="copy" title="Copy output">Copy</button>
       <button id="clear" title="Clear output">Clear</button>
+      <span class="zoom" role="group" aria-label="Output text size" data-zoom="out"><button type="button" data-step="-1" title="Smaller output text" aria-label="Smaller output text"><span class="za">A</span>&minus;</button><button type="button" data-step="1" title="Larger output text" aria-label="Larger output text"><span class="za">A</span>+</button></span>
     </div>
     <div class="out-body">
     <pre id="output"></pre>
@@ -805,6 +814,28 @@ $("theme").onclick = () => {
   themeTimer = setTimeout(() => root.classList.remove("theme-anim"), 700);
 };
 syncThemeButton();
+
+// text size of the input and the output (remembered per pane)
+(() => {
+  const MIN = 10, MAX = 24, DEF = 13;
+  const apply = (which, px, save) => {
+    px = Math.min(MAX, Math.max(MIN, px));
+    document.documentElement.style.setProperty(`--${which}-fs`, px + "px");
+    const g = document.querySelector(`.zoom[data-zoom="${which}"]`);
+    g.dataset.px = px;
+    g.querySelector('[data-step="-1"]').disabled = px <= MIN;
+    g.querySelector('[data-step="1"]').disabled = px >= MAX;
+    g.title = `Text size ${px}px`;
+    if (which === "in") editor.refresh();
+    if (save) { try { localStorage.setItem(`fs:${which}`, String(px)); } catch (e) {} }
+  };
+  for (const g of document.querySelectorAll(".zoom")) {
+    const which = g.dataset.zoom;
+    let px = DEF; try { px = parseInt(localStorage.getItem(`fs:${which}`), 10) || DEF; } catch (e) {}
+    apply(which, px, false);
+    g.addEventListener("click", e => { const b = e.target.closest("button"); if (b) apply(which, +g.dataset.px + +b.dataset.step, true); });
+  }
+})();
 
 // draggable splitter between the input and output panes
 (() => {
