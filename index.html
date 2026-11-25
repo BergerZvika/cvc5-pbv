@@ -51,7 +51,13 @@ body.resizing { cursor: col-resize; user-select: none; }
 body.resizing .CodeMirror, body.resizing #output { pointer-events: none; }
 @media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); row-gap: 12px; } .splitter { display: none; } }
 .controls { grid-column: 1 / -1; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px;
-  display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  display: flex; flex-direction: column; min-width: 0; }
+/* collapsible figure: animate the row height (0fr <-> 1fr), the gap and the opacity */
+.arch-wrap { display: grid; grid-template-rows: 1fr; margin-top: 10px; opacity: 1;
+  transition: grid-template-rows .32s cubic-bezier(.2,.7,.2,1), margin-top .32s cubic-bezier(.2,.7,.2,1), opacity .24s ease; }
+.arch-wrap > .arch { overflow: hidden; min-height: 0; }
+.controls.collapsed .arch-wrap { grid-template-rows: 0fr; margin-top: 0; opacity: 0; }
+.no-anim .arch-wrap, .no-anim #arch-toggle svg { transition: none !important; }
 .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
 .field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .field.grow { flex: 1 1 280px; }
@@ -95,16 +101,19 @@ button:disabled { opacity: .55; cursor: default; }
 .spin { width: 10px; height: 10px; border: 2px solid var(--muted); border-top-color: transparent; border-radius: 50%; animation: s 0.8s linear infinite; }
 @keyframes s { to { transform: rotate(360deg); } }
 .hidden { display: none !important; }
+html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
+  transition: background-color .4s ease, color .4s ease, border-color .4s ease, fill .4s ease, stroke .4s ease, box-shadow .4s ease !important; }
+#theme svg { transition: transform .4s cubic-bezier(.2,.7,.2,1), opacity .4s ease; }
+#theme.spin svg { transform: rotate(-90deg) scale(.6); opacity: 0; }
 .site-foot { padding: 0 16px 16px; text-align: center; font-size: 12px; color: var(--muted); }
 .site-foot a { color: var(--accent); text-decoration: none; }
 .site-foot a:hover { text-decoration: underline; }
 /* architecture figure */
-.arch { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; }
+.arch { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; }
 .cfg-field select { width: 150px; }
 #arch-toggle { padding: 6px 9px; display: inline-flex; align-items: center; }
-#arch-toggle svg { transition: transform .15s; }
+#arch-toggle svg { transition: transform .32s cubic-bezier(.2,.7,.2,1); }
 .controls.collapsed #arch-toggle svg { transform: rotate(180deg); }
-.controls.collapsed .arch { display: none; }
 .arch-scroll { overflow-x: auto; padding-bottom: 2px; min-width: 0; }
 .arch-fig { display: inline-flex; flex-direction: column; align-items: center; min-width: 100%; }
 .cvc5-box { display: flex; align-items: center; gap: 0; border: 1.5px solid var(--fg); border-radius: 8px; padding: 8px 10px; }
@@ -128,9 +137,8 @@ button.comp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
 .solve-box .comp-title { font: 15px "Times New Roman", serif; }
 .sc { font-variant: small-caps; }
 .legend { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); white-space: nowrap; }
-@media (max-width: 1180px) { .arch { grid-template-columns: auto minmax(0, 1fr); }
+@media (max-width: 1180px) { .arch { grid-template-columns: minmax(0, 1fr); }
   .legend { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 6px 16px; white-space: normal; } }
-@media (max-width: 900px) { .arch { grid-template-columns: minmax(0, 1fr); } }
 .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 5px; border: 1.5px solid; }
 .legend .l-old { background: var(--old-bg); border-color: var(--old-bd); }
 .legend .l-new { background: var(--new-bg); border-color: var(--new-bd); }
@@ -187,6 +195,10 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
 <main>
   <section class="controls" aria-label="Solver configuration">
   <div class="bar">
+    <div class="field cfg-field">
+      <label for="config">Configuration</label>
+      <select id="config"></select>
+    </div>
     <div class="field grow">
       <label for="args">Arguments <span title="{file} is replaced by the input file; otherwise the file is appended">(input file: <code>{file}</code>)</span></label>
       <input id="args" type="text" spellcheck="false" autocomplete="off">
@@ -201,11 +213,8 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
     </button>
   </div>
 
-  <div class="arch" id="arch">
-    <div class="field cfg-field">
-      <label for="config">Configuration</label>
-      <select id="config"></select>
-    </div>
+  <div class="arch-wrap" id="arch">
+  <div class="arch">
     <div class="arch-scroll">
       <div class="arch-fig">
         <div class="cvc5-box">
@@ -230,6 +239,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <span><i class="l-new"></i>new in this paper</span>
       <span><i class="l-off"></i>off in the current arguments</span>
     </div>
+  </div>
   </div>
   </section>
   <section class="pane">
@@ -553,11 +563,20 @@ function syncThemeButton() {
   $("theme").setAttribute("aria-label", label); $("theme").title = label;
   $("theme-label").textContent = dark ? "Light" : "Dark";
 }
+let themeTimer = 0;
 $("theme").onclick = () => {
-  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-  document.documentElement.dataset.theme = next;
-  try { localStorage.setItem("theme", next); } catch (e) {}
-  syncThemeButton();
+  const root = document.documentElement, btn = $("theme");
+  const next = root.dataset.theme === "dark" ? "light" : "dark";
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reduce) { root.classList.add("theme-anim"); btn.classList.add("spin"); }
+  // swap the icon at the midpoint of its fade, so it turns into the new one
+  setTimeout(() => {
+    root.dataset.theme = next;
+    try { localStorage.setItem("theme", next); } catch (e) {}
+    syncThemeButton(); btn.classList.remove("spin");
+  }, reduce ? 0 : 160);
+  clearTimeout(themeTimer);
+  themeTimer = setTimeout(() => root.classList.remove("theme-anim"), 700);
 };
 syncThemeButton();
 
@@ -597,10 +616,8 @@ syncThemeButton();
 
 // collapse the architecture figure: one line with configuration, arguments, timeout and run
 function setArchCollapsed(collapsed) {
-  const controls = document.querySelector(".controls"), cfg = document.querySelector(".cfg-field");
-  controls.classList.toggle("collapsed", collapsed);
-  if (collapsed) document.querySelector(".bar").prepend(cfg);
-  else $("arch").prepend(cfg);
+  document.querySelector(".controls").classList.toggle("collapsed", collapsed);
+  $("arch").inert = collapsed;
   const t = $("arch-toggle");
   t.setAttribute("aria-expanded", String(!collapsed));
   t.title = collapsed ? "Show the architecture" : "Hide the architecture";
@@ -611,7 +628,10 @@ $("arch-toggle").onclick = () => {
   setArchCollapsed(collapsed);
   try { localStorage.setItem("archCollapsed", collapsed ? "1" : "0"); } catch (e) {}
 };
-try { if (localStorage.getItem("archCollapsed") === "1") setArchCollapsed(true); else setArchCollapsed(false); } catch (e) { setArchCollapsed(false); }
+// initial state without animation
+document.documentElement.classList.add("no-anim");
+try { setArchCollapsed(localStorage.getItem("archCollapsed") === "1"); } catch (e) { setArchCollapsed(false); }
+requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.remove("no-anim")));
 
 function flash(btn, text) { const t = btn.textContent; btn.textContent = text; setTimeout(() => (btn.textContent = t), 1200); }
 
