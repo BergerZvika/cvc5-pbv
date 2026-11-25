@@ -150,7 +150,7 @@ button.comp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
     </div>
     <div class="field grow">
       <label for="args">Arguments <span title="{file} is replaced by the input file; otherwise the file is appended">(input file: <code>{file}</code>)</span></label>
-      <input id="args" type="text" spellcheck="false" autocomplete="off">
+      <input id="args" type="text" spellcheck="false" autocomplete="off" placeholder="--nl-ext-tplanes --full-saturate-quant are always added">
     </div>
     <div class="field">
       <label for="timeout">Timeout (s)</label>
@@ -197,7 +197,7 @@ button.comp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
           <button class="comp new" data-comp="red" type="button" style="font-size:13px">exp<br>reducer</button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
           <button class="comp old" data-comp="lrwa" type="button">&#x2112;&#x211B;&#x1D4B2;<sub>A</sub></button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
           <button class="comp new" data-comp="fermat" type="button" style="font-size:13px">Fermat</button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
-          <div class="comp old solve-box" data-comp="solve" role="button" tabindex="0">
+          <div class="comp old solve-box fixed on" title="Solve* (always on: --nl-ext-tplanes --full-saturate-quant)">
             <span class="comp-title"><span class="sc">Solve</span><sub>&#x22C6;</sub></span>
             <button class="comp old small" data-comp="exp" type="button">exp-solver</button>
             <button class="comp old small" data-comp="iand" type="button">&amp;<sup>&#x2115;</sup>-solver</button>
@@ -224,25 +224,26 @@ const SOLVERS = {
   cvc5:    { kind: "emscripten", glue: "wasm/cvc5.js", wasm: "wasm/cvc5.wasm", file: "/input.smt2",   mode: "commonlisp", factory: "createCvc5" },
 };
 
+// always passed to cvc5 (every configuration of the paper uses them; Solve* in the figure)
 const BASE       = "--nl-ext-tplanes --full-saturate-quant";
 const PIAND      = "--piand-lemmas=complement,mask,mask-sym,subset-trans,pow2-idiom";
 const EXP_CORE   = "--exp-solver=rewrites,lemmas,phasing --exp-preprocess=multiply --fermat-little-theorem";
 
 // [id, label, solver, args, description]
 const CONFIGS = [
-  ["cvc5-pbv",            "cvc5-pbv (full T_PBV)",        "cvc5", `${BASE} ${EXP_CORE} --learned-rewrite-rules=int,pbv ${PIAND} --pbv-rewrites`, "\\confcvc — all PBV techniques (Tables pbv, cav26, oopsla)."],
-  ["cvc5",                "cvc5 (base)",                  "cvc5", BASE, "\\confcvcbase — cvc5 baseline."],
-  ["cvc5-exp",            "cvc5-exp",                     "cvc5", `${BASE} ${EXP_CORE} --learned-rewrite-rules=int`, "\\confcvcexp — exponentiation solver with the integer learned rules."],
-  ["cvc5+rr",             "cvc5 + rr",                    "cvc5", `${BASE} --pbv-rewrites`, "\\confcvcexprr — PBV RARE rewrites."],
-  ["cvc5+lr",             "cvc5 + lr",                    "cvc5", `${BASE} --learned-rewrite-rules=pbv`, "\\confcvcexplr — learned PBV rewrite rules."],
-  ["cvc5+piand",          "cvc5 + piand",                 "cvc5", `${BASE} ${PIAND}`, "\\confcvcexppiandexists — parametric iand lemmas."],
-  ["cvc5+fermat",         "cvc5 + fermat",                "cvc5", `${BASE} --fermat-little-theorem`, "\\confcvcfermat (Table exp)."],
-  ["cvc5+mod-reducer",    "cvc5 + mod-reducer",           "cvc5", `${BASE} --learned-rewrite-rules=int`, "\\confcvcmodred (Table exp)."],
-  ["cvc5+pre",            "cvc5 + pre (multiply)",        "cvc5", `${BASE} --exp-preprocess=multiply`, "\\confcvcpre (Table exp; Table 14 row mul)."],
-  ["cvc5-div",            "cvc5 + pre (div)",             "cvc5", `${BASE} --exp-preprocess=div`, "Table 14 row div."],
-  ["cvc5-common",         "cvc5 + pre (common)",          "cvc5", `${BASE} --exp-preprocess=common`, "Table 14 row common."],
-  ["cvc5+exp-no-phasing", "cvc5 + exp (no phasing)",      "cvc5", `${BASE} --exp-solver=rewrites,lemmas`, "\\confcvcplusexpnophase (Table exp)."],
-  ["cvc5+exp",            "cvc5 + exp",                   "cvc5", `${BASE} --exp-solver=rewrites,lemmas,phasing`, "\\confcvcplusexp (Table exp)."],
+  ["cvc5-pbv",            "cvc5-pbv (full T_PBV)",        "cvc5", `${EXP_CORE} --learned-rewrite-rules=int,pbv ${PIAND} --pbv-rewrites`, "\\confcvc — all PBV techniques (Tables pbv, cav26, oopsla)."],
+  ["cvc5",                "cvc5 (base)",                  "cvc5", "", "\\confcvcbase — cvc5 baseline."],
+  ["cvc5-exp",            "cvc5-exp",                     "cvc5", `${EXP_CORE} --learned-rewrite-rules=int`, "\\confcvcexp — exponentiation solver with the integer learned rules."],
+  ["cvc5+rr",             "cvc5 + rr",                    "cvc5", `--pbv-rewrites`, "\\confcvcexprr — PBV RARE rewrites."],
+  ["cvc5+lr",             "cvc5 + lr",                    "cvc5", `--learned-rewrite-rules=pbv`, "\\confcvcexplr — learned PBV rewrite rules."],
+  ["cvc5+piand",          "cvc5 + piand",                 "cvc5", `${PIAND}`, "\\confcvcexppiandexists — parametric iand lemmas."],
+  ["cvc5+fermat",         "cvc5 + fermat",                "cvc5", `--fermat-little-theorem`, "\\confcvcfermat (Table exp)."],
+  ["cvc5+mod-reducer",    "cvc5 + mod-reducer",           "cvc5", `--learned-rewrite-rules=int`, "\\confcvcmodred (Table exp)."],
+  ["cvc5+pre",            "cvc5 + pre (multiply)",        "cvc5", `--exp-preprocess=multiply`, "\\confcvcpre (Table exp; Table 14 row mul)."],
+  ["cvc5-div",            "cvc5 + pre (div)",             "cvc5", `--exp-preprocess=div`, "Table 14 row div."],
+  ["cvc5-common",         "cvc5 + pre (common)",          "cvc5", `--exp-preprocess=common`, "Table 14 row common."],
+  ["cvc5+exp-no-phasing", "cvc5 + exp (no phasing)",      "cvc5", `--exp-solver=rewrites,lemmas`, "\\confcvcplusexpnophase (Table exp)."],
+  ["cvc5+exp",            "cvc5 + exp",                   "cvc5", `--exp-solver=rewrites,lemmas,phasing`, "\\confcvcplusexp (Table exp)."],
 ];
 const CONFIG_BY_ID = Object.fromEntries(CONFIGS.map(c => [c[0], c]));
 
@@ -396,7 +397,6 @@ const COMPONENTS = {
   red:    { type: "opt",   name: "--exp-preprocess", value: "multiply", what: "exp reducer (preprocessing)" },
   lrwa:   { type: "list",  name: "--learned-rewrite-rules", value: "int", what: "learned integer rewrites (mod reducer)" },
   fermat: { type: "flag",  name: "--fermat-little-theorem",      what: "Fermat's little theorem" },
-  solve:  { type: "flags", names: BASE.split(" "),               what: "Solve* (non-linear solver options of the paper)" },
   exp:    { type: "opt",   name: "--exp-solver", value: "rewrites,lemmas,phasing", what: "exp solver" },
   iand:   { type: "opt",   name: "--piand-lemmas", value: PIAND.split("=")[1], what: "parametric iand lemmas" },
 };
@@ -456,9 +456,6 @@ function onCompClick(e) {
   syncConfigFromArgs();
 }
 document.querySelector(".arch").addEventListener("click", onCompClick);
-document.querySelector(".solve-box").addEventListener("keydown", e => {
-  if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("solve-box")) { e.preventDefault(); onCompClick(e); }
-});
 argsIn.addEventListener("input", syncConfigFromArgs);
 
 exSel.addEventListener("change", () => {
@@ -632,6 +629,7 @@ async function run() {
   const s = SOLVERS[solverName];
   const input = editor.getValue();
   let argv = splitArgs(argsIn.value);
+  argv = [...BASE.split(" ").filter(f => !argv.includes(f)), ...argv];
   if (argv.includes("{file}")) argv = argv.map(a => (a === "{file}" ? s.file : a));
   else argv.push(s.file);
   if (s.argv0) argv.unshift(s.argv0);
