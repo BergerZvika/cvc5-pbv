@@ -169,7 +169,10 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *
 #arch-toggle svg { transition: transform .32s cubic-bezier(.2,.7,.2,1); }
 .controls.collapsed #arch-toggle svg { transform: rotate(180deg); }
 .arch-scroll { overflow-x: auto; padding-bottom: 2px; min-width: 0; }
-.arch-fig { display: inline-flex; flex-direction: column; align-items: center; min-width: 100%; }
+/* φ and its arrow sit outside the cvc5 box: grid row 1 = φ, arrow, box; row 2 = caption under the box */
+.arch-fig { display: inline-grid; grid-template-columns: auto auto auto; align-items: center; justify-content: center; min-width: 100%; }
+.arch-fig > .arch-cap { grid-column: 3; text-align: center; }
+.arrow.in { margin-right: -1px; }
 .cvc5-box { display: flex; align-items: center; gap: 0; border: 1.5px solid var(--fg); border-radius: 8px; padding: 5px 10px; }
 .arch-cap { font-size: 12px; margin-top: 1px; line-height: 1.2; }
 .phi { font: italic 18px/1 "Times New Roman", serif; padding-right: 2px; }
@@ -271,8 +274,8 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
   <div class="arch">
     <div class="arch-scroll">
       <div class="arch-fig">
+        <span class="phi">&phi;</span><svg class="arrow in" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
         <div class="cvc5-box">
-          <span class="phi">&phi;</span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
           <button class="comp old" data-comp="rwb" type="button">&#x211B;&#x1D4B2;<sub>B</sub></button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
           <button class="comp new" data-comp="lrwb" type="button">&#x2112;&#x211B;&#x1D4B2;<sub>B</sub></button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
           <span class="comp old fixed on" title="Translation T (always on)">&#x1D4AF;</span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
