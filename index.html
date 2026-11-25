@@ -156,8 +156,9 @@ button:disabled { opacity: .55; cursor: default; }
 
 html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
   transition: background-color .4s ease, color .4s ease, border-color .4s ease, fill .4s ease, stroke .4s ease, box-shadow .4s ease !important; }
-#theme svg { transition: transform .4s cubic-bezier(.2,.7,.2,1), opacity .4s ease; }
-#theme.spin svg { transform: rotate(-90deg) scale(.6); opacity: 0; }
+#theme svg, #theme-label { transition: opacity .16s ease; }
+#theme.swap svg, #theme.swap #theme-label { opacity: 0; }   /* plain fade, no rotation */
+#theme-label { display: inline-block; min-width: 2.6em; text-align: left; }   /* "Dark"/"Light" same width */
 .site-foot { padding: 0 16px 16px; text-align: center; font-size: 12px; color: var(--muted); }
 .site-foot a { color: var(--accent); text-decoration: none; }
 .site-foot a:hover { text-decoration: underline; }
@@ -656,12 +657,12 @@ $("theme").onclick = () => {
   const root = document.documentElement, btn = $("theme");
   const next = root.dataset.theme === "dark" ? "light" : "dark";
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (!reduce) { root.classList.add("theme-anim"); btn.classList.add("spin"); }
-  // swap the icon at the midpoint of its fade, so it turns into the new one
+  if (!reduce) { root.classList.add("theme-anim"); btn.classList.add("swap"); }
+  // swap the icon and label while they are faded out
   setTimeout(() => {
     root.dataset.theme = next;
     try { localStorage.setItem("theme", next); } catch (e) {}
-    syncThemeButton(); btn.classList.remove("spin");
+    syncThemeButton(); btn.classList.remove("swap");
   }, reduce ? 0 : 160);
   clearTimeout(themeTimer);
   themeTimer = setTimeout(() => root.classList.remove("theme-anim"), 700);
