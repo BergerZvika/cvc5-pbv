@@ -528,6 +528,10 @@ const TOP_DESC = {
   "exp-eva": "EIA: integer exponentiation",
   "oopsla26": "sets in PBV",
 };
+// faded notes on sub-folders, by top-level set
+const SUB_DESC = {
+  "cav26": { "enumeration-encoding": "CAV'26 encoding", "single-formula-encoding": "our encoding, with ite" },
+};
 // folder names shown differently from their URL-safe names
 const DIR_LABEL = { "oopsla26": "OOPSLA'26" };
 const shownPath = p => p.split("/").map((d, i) => (i === 0 && DIR_LABEL[d]) || d).join("/");
@@ -597,7 +601,7 @@ function renderBench() {
   for (const d of benchDir) node = node.dirs.get(d);
   for (const [name, sub] of [...node.dirs].sort((a, b) => a[0].localeCompare(b[0])))
     list.append(benchItem("dir", (!benchDir.length && DIR_LABEL[name]) || name, `${sub.count.toLocaleString()} files`, () => { benchDir = [...benchDir, name]; renderBench(); list.scrollTop = 0; },
-      benchDir.length ? "" : TOP_DESC[name]));
+      benchDir.length ? (SUB_DESC[benchDir[0]] || {})[name] || "" : TOP_DESC[name]));
   for (const [name, p, size, shown] of node.files.sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true })))
     list.append(benchItem("file", name, fmtSize(size), () => openBenchmark(p, shown)));
 }
