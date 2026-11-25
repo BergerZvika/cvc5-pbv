@@ -44,8 +44,9 @@ header h1 { font-size: 18px; margin: 0; font-weight: 650; }
 header p { margin: 0; color: var(--muted); }
 main { padding: 0 16px 16px; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 @media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
-.bar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: end;
-  background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+.controls { grid-column: 1 / -1; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px;
+  display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
 .field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .field.grow { flex: 1 1 280px; }
 label { font-size: 12px; color: var(--muted); }
@@ -90,11 +91,8 @@ button:disabled { opacity: .55; cursor: default; }
 @keyframes s { to { transform: rotate(360deg); } }
 .hidden { display: none !important; }
 /* architecture figure */
-.arch { grid-column: 1 / -1; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; min-width: 0;
-  display: grid; grid-template-columns: minmax(120px, 190px) minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; }
-.arch-head { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.arch-head h2 { font-size: 13px; margin: 0; font-weight: 600; font-style: italic; }
-.arch-head span { font-size: 12px; color: var(--muted); }
+.arch { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; }
+.cfg-field select { width: 150px; }
 .arch-scroll { overflow-x: auto; padding-bottom: 2px; min-width: 0; }
 .arch-fig { display: inline-flex; flex-direction: column; align-items: center; min-width: 100%; }
 .cvc5-box { display: flex; align-items: center; gap: 0; border: 1.5px solid var(--fg); border-radius: 8px; padding: 8px 10px; }
@@ -118,7 +116,7 @@ button.comp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
 .solve-box .comp-title { font: 15px "Times New Roman", serif; }
 .sc { font-variant: small-caps; }
 .legend { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); white-space: nowrap; }
-@media (max-width: 1180px) { .arch { grid-template-columns: minmax(120px, 190px) minmax(0, 1fr); }
+@media (max-width: 1180px) { .arch { grid-template-columns: auto minmax(0, 1fr); }
   .legend { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 6px 16px; white-space: normal; } }
 @media (max-width: 900px) { .arch { grid-template-columns: minmax(0, 1fr); } }
 .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 5px; border: 1.5px solid; }
@@ -174,11 +172,8 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
   </button>
 </header>
 <main>
+  <section class="controls" aria-label="Solver configuration">
   <div class="bar">
-    <div class="field">
-      <label for="config">Configuration</label>
-      <select id="config"></select>
-    </div>
     <div class="field grow">
       <label for="args">Arguments <span title="{file} is replaced by the input file; otherwise the file is appended">(input file: <code>{file}</code>)</span></label>
       <input id="args" type="text" spellcheck="false" autocomplete="off" placeholder="--nl-ext-tplanes --full-saturate-quant are always added">
@@ -190,10 +185,10 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
     <button id="run" class="primary" title="Run (Ctrl+Enter)">Run</button>
   </div>
 
-  <section class="arch" aria-labelledby="arch-title">
-    <div class="arch-head">
-      <h2 id="arch-title">Architecture of this paper</h2>
-      <span>Highlighted components are on in the current arguments. Click a component to add or remove its flags.</span>
+  <div class="arch">
+    <div class="field cfg-field">
+      <label for="config">Configuration</label>
+      <select id="config"></select>
     </div>
     <div class="arch-scroll">
       <div class="arch-fig">
@@ -219,6 +214,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <span><i class="l-new"></i>new in this paper</span>
       <span><i class="l-off"></i>off in the current arguments</span>
     </div>
+  </div>
   </section>
   <section class="pane">
     <div class="pane-head">
@@ -275,19 +271,19 @@ const EXP_CORE   = "--exp-solver=rewrites,lemmas,phasing --exp-preprocess=multip
 
 // [id, label, solver, args, description]
 const CONFIGS = [
-  ["cvc5-pbv",            "cvc5-pbv (full T_PBV)",        "cvc5", `${EXP_CORE} --learned-rewrite-rules=int,pbv ${PIAND} --pbv-rewrites`, "\\confcvc — all PBV techniques (Tables pbv, cav26, oopsla)."],
-  ["cvc5",                "cvc5 (base)",                  "cvc5", "", "\\confcvcbase — cvc5 baseline."],
+  ["cvc5-pbv",            "cvc5-pbv",        "cvc5", `${EXP_CORE} --learned-rewrite-rules=int,pbv ${PIAND} --pbv-rewrites`, "\\confcvc — all PBV techniques (Tables pbv, cav26, oopsla)."],
+  ["cvc5",                "cvc5",                  "cvc5", "", "\\confcvcbase — cvc5 baseline."],
   ["cvc5-exp",            "cvc5-exp",                     "cvc5", `${EXP_CORE} --learned-rewrite-rules=int`, "\\confcvcexp — exponentiation solver with the integer learned rules."],
-  ["cvc5+rr",             "cvc5 + rr",                    "cvc5", `--pbv-rewrites`, "\\confcvcexprr — PBV RARE rewrites."],
-  ["cvc5+lr",             "cvc5 + lr",                    "cvc5", `--learned-rewrite-rules=pbv`, "\\confcvcexplr — learned PBV rewrite rules."],
-  ["cvc5+piand",          "cvc5 + piand",                 "cvc5", `${PIAND}`, "\\confcvcexppiandexists — parametric iand lemmas."],
-  ["cvc5+fermat",         "cvc5 + fermat",                "cvc5", `--fermat-little-theorem`, "\\confcvcfermat (Table exp)."],
-  ["cvc5+mod-reducer",    "cvc5 + mod-reducer",           "cvc5", `--learned-rewrite-rules=int`, "\\confcvcmodred (Table exp)."],
-  ["cvc5+pre",            "cvc5 + pre (multiply)",        "cvc5", `--exp-preprocess=multiply`, "\\confcvcpre (Table exp; Table 14 row mul)."],
-  ["cvc5-div",            "cvc5 + pre (div)",             "cvc5", `--exp-preprocess=div`, "Table 14 row div."],
-  ["cvc5-common",         "cvc5 + pre (common)",          "cvc5", `--exp-preprocess=common`, "Table 14 row common."],
-  ["cvc5+exp-no-phasing", "cvc5 + exp (no phasing)",      "cvc5", `--exp-solver=rewrites,lemmas`, "\\confcvcplusexpnophase (Table exp)."],
-  ["cvc5+exp",            "cvc5 + exp",                   "cvc5", `--exp-solver=rewrites,lemmas,phasing`, "\\confcvcplusexp (Table exp)."],
+  ["cvc5+rr",             "cvc5+rr",                    "cvc5", `--pbv-rewrites`, "\\confcvcexprr — PBV RARE rewrites."],
+  ["cvc5+lr",             "cvc5+lr",                    "cvc5", `--learned-rewrite-rules=pbv`, "\\confcvcexplr — learned PBV rewrite rules."],
+  ["cvc5+piand",          "cvc5+piand",                 "cvc5", `${PIAND}`, "\\confcvcexppiandexists — parametric iand lemmas."],
+  ["cvc5+fermat",         "cvc5+fermat",                "cvc5", `--fermat-little-theorem`, "\\confcvcfermat (Table exp)."],
+  ["cvc5+mod-reducer",    "cvc5+mod-red",           "cvc5", `--learned-rewrite-rules=int`, "\\confcvcmodred (Table exp)."],
+  ["cvc5+pre",            "cvc5+pre",        "cvc5", `--exp-preprocess=multiply`, "\\confcvcpre (Table exp; Table 14 row mul)."],
+  ["cvc5-div",            "cvc5+pre-div",             "cvc5", `--exp-preprocess=div`, "Table 14 row div."],
+  ["cvc5-common",         "cvc5+pre-common",          "cvc5", `--exp-preprocess=common`, "Table 14 row common."],
+  ["cvc5+exp-no-phasing", "cvc5+exp-noph",      "cvc5", `--exp-solver=rewrites,lemmas`, "\\confcvcplusexpnophase (Table exp)."],
+  ["cvc5+exp",            "cvc5+exp",                   "cvc5", `--exp-solver=rewrites,lemmas,phasing`, "\\confcvcplusexp (Table exp)."],
 ];
 const CONFIG_BY_ID = Object.fromEntries(CONFIGS.map(c => [c[0], c]));
 
