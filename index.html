@@ -523,17 +523,18 @@ $("load").onclick = () => $("file").click();
 // Benchmark browser (benchmarks/index.json lists every file, with its size)
 // ---------------------------------------------------------------------------
 const TOP_DESC = {
-  "pbv": "PBV: SAT'25 sets and QF_PBV",
-  "cav26": "CAV'26 sets in PBV",
-  "exp-eva": "EIA: integer exponentiation",
+  "eia": "integer exponentiation",
+  "pbv": "SAT'25 sets and QF_PBV",
+  "cav26": "sets in PBV",
   "oopsla26": "sets in PBV",
 };
+const TOP_ORDER = Object.keys(TOP_DESC);   // top-level sets are listed in this order
 // faded notes on sub-folders, by top-level set
 const SUB_DESC = {
   "cav26": { "enumeration-encoding": "CAV'26 encoding", "single-formula-encoding": "our encoding, with ite" },
 };
 // folder names shown differently from their URL-safe names
-const DIR_LABEL = { "oopsla26": "OOPSLA'26" };
+const DIR_LABEL = { "eia": "EIA", "pbv": "PBV", "cav26": "CAV'26", "oopsla26": "OOPSLA'26" };
 const shownPath = p => p.split("/").map((d, i) => (i === 0 && DIR_LABEL[d]) || d).join("/");
 const ICONS = {
   dir: '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M1.5 3.5h4.2l1.5 1.6h7.3v7.4h-13z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
@@ -599,7 +600,8 @@ function renderBench() {
     crumbs.append(b);
   });
   for (const d of benchDir) node = node.dirs.get(d);
-  for (const [name, sub] of [...node.dirs].sort((a, b) => a[0].localeCompare(b[0])))
+  const rank = n => benchDir.length ? 0 : (TOP_ORDER.indexOf(n) + 1 || 99);
+  for (const [name, sub] of [...node.dirs].sort((a, b) => rank(a[0]) - rank(b[0]) || a[0].localeCompare(b[0])))
     list.append(benchItem("dir", (!benchDir.length && DIR_LABEL[name]) || name, `${sub.count.toLocaleString()} files`, () => { benchDir = [...benchDir, name]; renderBench(); list.scrollTop = 0; },
       benchDir.length ? (SUB_DESC[benchDir[0]] || {})[name] || "" : TOP_DESC[name]));
   for (const [name, p, size, shown] of node.files.sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true })))
@@ -1010,7 +1012,7 @@ async function run() {
 (async () => {
   applyConfig(CONFIGS[0][0], false);
   editor.setValue(DEFAULT_INPUT.text);
-  setInputName(DEFAULT_INPUT.path);
+  setInputName(shownPath(DEFAULT_INPUT.path));
   cfgSel.dataset.prev = cfgSel.value;
   if (location.protocol === "file:") { log(FILE_PROTOCOL_HELP + "\n", "err"); setStatus("Cannot run from file://"); }
 })();
