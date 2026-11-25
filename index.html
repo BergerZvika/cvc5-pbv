@@ -89,6 +89,7 @@ button:disabled { opacity: .55; cursor: default; }
 .cm-s-default .cm-comment { color: var(--muted); }
 .cm-s-default .cm-bracket, .cm-s-default .cm-def { color: var(--fg); }
 .CodeMirror-matchingbracket { color: var(--accent) !important; text-decoration: underline; }
+.out-body { position: relative; }
 #output { margin: 0; padding: 10px; height: 62vh; min-height: 300px; overflow: auto; white-space: pre-wrap; word-break: break-word;
   font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); border-radius: 0 0 8px 8px; }
 #output .err { color: var(--err); }
@@ -101,6 +102,47 @@ button:disabled { opacity: .55; cursor: default; }
 .spin { width: 10px; height: 10px; border: 2px solid var(--muted); border-top-color: transparent; border-radius: 50%; animation: s 0.8s linear infinite; }
 @keyframes s { to { transform: rotate(360deg); } }
 .hidden { display: none !important; }
+/* first-run setup overlay */
+.setup { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; overflow: auto;
+  background: color-mix(in srgb, var(--code-bg) 88%, transparent); backdrop-filter: blur(3px); border-radius: 0 0 8px 8px;
+  opacity: 0; transition: opacity .35s ease; }
+.setup[hidden] { display: none; }
+.setup.show { opacity: 1; }
+.setup-card { width: min(440px, 100%); background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.12); text-align: center; transform: translateY(8px) scale(.98); transition: transform .45s cubic-bezier(.2,.7,.2,1); }
+.setup.show .setup-card { transform: none; }
+.setup-art { display: flex; justify-content: center; margin-bottom: 6px; }
+.setup-art .orbit { transform-origin: 60px 60px; animation: orbit 9s linear infinite; }
+.setup-art .sat { transform-origin: 60px 60px; animation: orbit 2.6s linear infinite; }
+.setup-art .sat2 { transform-origin: 60px 60px; animation: orbit 3.8s linear infinite reverse; }
+.setup-art .chip { transform-origin: 60px 60px; animation: pulse 2s ease-in-out infinite; }
+.setup.done .setup-art .sat, .setup.done .setup-art .sat2, .setup.done .setup-art .orbit { animation-play-state: paused; }
+@keyframes orbit { to { transform: rotate(360deg); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 50% { transform: scale(1.05); } }
+.setup-card h3 { margin: 2px 0 6px; font-size: 17px; }
+.setup-card > p { margin: 0 auto 12px; color: var(--muted); font-size: 13px; max-width: 380px; }
+.steps { list-style: none; margin: 0 0 12px; padding: 0; text-align: left; display: grid; gap: 10px; }
+.steps li { display: flex; gap: 10px; align-items: flex-start; opacity: .5; transition: opacity .3s; }
+.steps li.active, .steps li.done { opacity: 1; }
+.steps .st { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); display: grid; place-items: center;
+  margin-top: 1px; transition: background .3s, border-color .3s; }
+.steps .st .ck { width: 13px; height: 13px; color: #fff; stroke-dasharray: 20; stroke-dashoffset: 20; transition: stroke-dashoffset .35s ease .1s; }
+.steps li.active .st { border-color: var(--accent); border-top-color: transparent; animation: spin .8s linear infinite; }
+.steps li.done .st { background: var(--ok); border-color: var(--ok); animation: none; }
+.steps li.done .st .ck { stroke-dashoffset: 0; }
+.sbody { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 13px; }
+.sbody .sd { color: var(--muted); font-size: 12.5px; }
+.bar { flex-basis: 100%; height: 6px; border-radius: 99px; background: color-mix(in srgb, var(--border) 70%, transparent); overflow: hidden; margin-top: 5px; }
+.bar i { display: block; height: 100%; width: 0; border-radius: inherit; transition: width .2s linear;
+  background: linear-gradient(90deg, var(--old-bd), var(--accent), var(--new-bd)); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+.setup-note { display: flex; gap: 7px; align-items: flex-start; justify-content: center; text-align: left; margin: 0; padding-top: 10px;
+  border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+.setup-note svg { flex: none; margin-top: 2px; }
+.setup.compact .setup-art, .setup.compact .setup-note { display: none; }
+@media (prefers-reduced-motion: reduce) { .setup-art *, .bar i, .steps li.active .st { animation: none !important; } }
+
 html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
   transition: background-color .4s ease, color .4s ease, border-color .4s ease, fill .4s ease, stroke .4s ease, box-shadow .4s ease !important; }
 #theme svg { transition: transform .4s cubic-bezier(.2,.7,.2,1), opacity .4s ease; }
@@ -263,7 +305,36 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <button id="copy" title="Copy output">Copy</button>
       <button id="clear" title="Clear output">Clear</button>
     </div>
+    <div class="out-body">
     <pre id="output"></pre>
+    <div id="setup" class="setup" hidden>
+      <div class="setup-card" role="status" aria-live="polite">
+        <div class="setup-art" aria-hidden="true">
+          <svg viewBox="0 0 120 120" width="92" height="92">
+            <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--old-bd)"/><stop offset="1" stop-color="var(--new-bd)"/></linearGradient></defs>
+            <circle class="orbit" cx="60" cy="60" r="50" fill="none" stroke="url(#sg)" stroke-width="2" stroke-dasharray="4 9" stroke-linecap="round"/>
+            <g class="sat"><circle cx="60" cy="10" r="5" fill="var(--new-bd)"/></g>
+            <g class="sat2"><circle cx="60" cy="110" r="3.5" fill="var(--old-bd)"/></g>
+            <rect class="chip" x="36" y="36" width="48" height="48" rx="10" fill="var(--panel)" stroke="url(#sg)" stroke-width="3"/>
+            <g stroke="var(--muted)" stroke-width="2.4" stroke-linecap="round">
+              <path d="M48 30v-6M60 30v-6M72 30v-6M48 96v-6M60 96v-6M72 96v-6M30 48h-6M30 60h-6M30 72h-6M96 48h-6M96 60h-6M96 72h-6"/>
+            </g>
+            <text x="60" y="66" text-anchor="middle" font-family="ui-monospace, monospace" font-size="15" font-weight="700" fill="var(--fg)">cvc5</text>
+          </svg>
+        </div>
+        <h3 id="setup-title">Installing cvc5 in your browser</h3>
+        <p id="setup-text">This is the first run on this device, so the page is setting up the solver. cvc5 has been compiled to WebAssembly, which lets your browser run it directly.</p>
+        <ol class="steps">
+          <li data-step="download"><span class="st"><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div class="sbody"><b>Download</b><span class="sd" id="st-dl">cvc5 for WebAssembly · 19.4 MB</span>
+            <div class="bar"><i id="st-bar"></i></div></div></li>
+          <li data-step="compile"><span class="st"><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div class="sbody"><b>Prepare</b><span class="sd">your browser compiles it to fast native code</span></div></li>
+          <li data-step="start"><span class="st"><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div class="sbody"><b>Start</b><span class="sd">cvc5 starts on your input</span></div></li>
+        </ol>
+        <p class="setup-note"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2M3.5 7h9v7h-9z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+          Everything runs on your computer: your input never leaves the browser. Next time cvc5 starts instantly from the browser cache.</p>
+      </div>
+    </div>
+    </div>
   </section>
 </main>
 <footer class="site-foot">&copy; <a href="https://bergerzvika.github.io/Advanced-Programming/home.html" target="_blank" rel="noopener">Zvika Berger</a> 2027</footer>
@@ -286,7 +357,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
 // Solvers (WebAssembly builds) and the configurations of the paper
 // ---------------------------------------------------------------------------
 const SOLVERS = {
-  cvc5:    { kind: "emscripten", glue: "wasm/cvc5.js", wasm: "wasm/cvc5.wasm", file: "/input.smt2",   mode: "commonlisp", factory: "createCvc5" },
+  cvc5:    { kind: "emscripten", glue: "wasm/cvc5.js", wasm: "wasm/cvc5.wasm", file: "/input.smt2",   mode: "commonlisp", factory: "createCvc5", size: 19371418 },
 };
 
 // always passed to cvc5 (every configuration of the paper uses them; Solve* in the figure)
@@ -677,6 +748,9 @@ const FILE_PROTOCOL_HELP =
   "Browsers do not let a page opened as a local file (file://) load the solver binary. " +
   "Open the GitHub Pages URL, or serve this directory: run `python3 -m http.server 8000` in it " +
   "and open http://localhost:8000/";
+const loadState = {};      // name -> { phase, loaded, total, t0 }
+const loadListeners = new Set();
+function notifyLoad(name, st) { loadState[name] = st; for (const f of loadListeners) f(name, st); }
 function compileSolver(name) {
   const s = SOLVERS[name];
   if (!moduleCache[name]) {
@@ -687,12 +761,91 @@ function compileSolver(name) {
       try { resp = await fetch(url); }
       catch (err) { throw new Error(`cannot download ${url} (${err.message}). ${FILE_PROTOCOL_HELP}`); }
       if (!resp.ok) throw new Error(`cannot download ${url} (HTTP ${resp.status}): is wasm/ next to index.html?`);
-      try { return await WebAssembly.compileStreaming(resp.clone()); }
-      catch { return await WebAssembly.compile(await resp.arrayBuffer()); }
+      const encoded = resp.headers.get("content-encoding");
+      const total = (!encoded && +resp.headers.get("content-length")) || s.size || 0;
+      const st = { phase: "download", loaded: 0, total, t0: performance.now() };
+      notifyLoad(name, st);
+      // count the bytes as they arrive and compile while downloading
+      const reader = resp.body.getReader();
+      const counted = new ReadableStream({
+        async pull(ctrl) {
+          const { done, value } = await reader.read();
+          if (done) { notifyLoad(name, { ...st, phase: "compile", loaded: Math.max(st.loaded, total) }); ctrl.close(); return; }
+          st.loaded += value.byteLength; notifyLoad(name, { ...st });
+          ctrl.enqueue(value);
+        },
+        cancel(r) { reader.cancel(r); },
+      });
+      const wasmResp = new Response(counted, { headers: { "Content-Type": "application/wasm" } });
+      const mod = WebAssembly.compileStreaming
+        ? await WebAssembly.compileStreaming(wasmResp)
+        : await WebAssembly.compile(await wasmResp.arrayBuffer());
+      notifyLoad(name, { ...st, phase: "ready" });
+      return mod;
     })();
-    moduleCache[name].catch(() => delete moduleCache[name]);
+    moduleCache[name].catch(() => { delete moduleCache[name]; delete loadState[name]; });
   }
   return moduleCache[name];
+}
+
+// ---------------------------------------------------------------------------
+// First-run setup card (download -> prepare -> start)
+// ---------------------------------------------------------------------------
+const setupEl = $("setup");
+const fmtMB = n => (n / 1e6).toFixed(1);
+let setupFor = null, setupShowTimer = 0, setupHideTimer = 0;
+function setupStep(step, state) {
+  const li = setupEl.querySelector(`[data-step="${step}"]`);
+  li.classList.toggle("active", state === "active"); li.classList.toggle("done", state === "done");
+}
+function setupUpdate(name, st) {
+  if (name !== setupFor) return;
+  if (st.phase === "download") {
+    setupStep("download", "active");
+    const pct = st.total ? Math.min(100, st.loaded / st.total * 100) : 0;
+    $("st-bar").style.width = pct.toFixed(1) + "%";
+    const secs = (performance.now() - st.t0) / 1000, rate = secs > 0.25 ? st.loaded / secs : 0;
+    const left = rate && st.total ? Math.max(0, (st.total - st.loaded) / rate) : 0;
+    $("st-dl").textContent = `${fmtMB(st.loaded)} of ${fmtMB(st.total)} MB` +
+      (rate ? ` · ${fmtMB(rate)} MB/s` : "") + (left > 1 ? ` · about ${Math.ceil(left)} s left` : "");
+  } else if (st.phase === "compile") {
+    $("st-bar").style.width = "100%"; setupStep("download", "done"); setupStep("compile", "active");
+    $("st-dl").textContent = `${fmtMB(st.total)} MB downloaded`;
+  } else if (st.phase === "ready") {
+    setupStep("download", "done"); setupStep("compile", "done"); setupStep("start", "active");
+    $("st-bar").style.width = "100%";
+  }
+}
+loadListeners.add(setupUpdate);
+function showSetup(name, compact) {
+  clearTimeout(setupHideTimer);
+  setupFor = name;
+  setupEl.classList.toggle("compact", compact); setupEl.classList.remove("done");
+  $("setup-title").textContent = compact ? `Loading ${name}…` : `Installing ${name} in your browser`;
+  $("setup-text").textContent = compact
+    ? `Loading ${name} from your browser's cache.`
+    : `This is the first run on this device, so the page is setting up the solver. ${name} has been compiled to WebAssembly, which lets your browser run it directly.`;
+  for (const st of ["download", "compile", "start"]) setupStep(st, null);
+  $("st-bar").style.width = "0%";
+  $("st-dl").textContent = `${name} for WebAssembly · ${fmtMB(SOLVERS[name].size || 0)} MB`;
+  setupEl.hidden = false;
+  requestAnimationFrame(() => setupEl.classList.add("show"));
+  if (loadState[name]) setupUpdate(name, loadState[name]);
+}
+function hideSetup(success) {
+  clearTimeout(setupShowTimer);
+  if (setupEl.hidden) { setupFor = null; return; }
+  if (success) {
+    for (const st of ["download", "compile", "start"]) setupStep(st, "done");
+    setupEl.classList.add("done");
+    $("setup-title").textContent = `${setupFor} is ready`;
+    $("setup-text").textContent = `${setupFor} is installed in this browser. Your result is on its way.`;
+  }
+  setupFor = null;
+  setupHideTimer = setTimeout(() => {
+    setupEl.classList.remove("show");
+    setupHideTimer = setTimeout(() => { setupEl.hidden = true; }, 380);
+  }, success ? 900 : 0);
 }
 
 const EMSCRIPTEN_WORKER = `
@@ -743,6 +896,7 @@ function finish(result, extra) {
   const { worker, timer, start } = running;
   clearTimeout(timer); worker.terminate();
   running = null;
+  if (setupFor) hideSetup(result !== "error" && result !== "cancelled");
   const secs = ((performance.now() - start) / 1000).toFixed(2);
   if (extra) log(extra, "err");
   log(`\n[${result} after ${secs} s wall time]\n`, "meta");
@@ -779,9 +933,18 @@ async function run() {
   const token = {};
   running = { token, worker: null, timer: 0, start: performance.now(), stdout: "" };
   let module;
+  // first load in this page: show the setup card (at once on the first visit; from the cache only if it takes a while)
+  const needsLoad = !moduleCache[solverName] || (loadState[solverName] && loadState[solverName].phase !== "ready");
+  let installed = false;
+  try { installed = localStorage.getItem(`installed:${solverName}`) === String(s.size); } catch (e) {}
+  if (needsLoad) {
+    if (installed) setupShowTimer = setTimeout(() => { if (running && running.token === token) showSetup(solverName, true); }, 450);
+    else showSetup(solverName, false);
+  }
   try {
     setStatus(moduleCache[solverName] ? "Starting…" : `Downloading ${solverName}…`, true);
     module = await compileSolver(solverName);
+    try { localStorage.setItem(`installed:${solverName}`, String(s.size)); } catch (e) {}
   } catch (err) {
     if (running && running.token === token) { running.worker = { terminate() {} }; finish("error", `${err}\n`); }
     return;
@@ -798,6 +961,7 @@ async function run() {
   worker.onmessage = (e) => {
     const m = e.data;
     if (!running || running.worker !== worker) return;
+    if (setupFor) hideSetup(true);
     if (m.type === "out") {
       for (const [stream, text] of m.chunks) {
         if (stream === 1) running.stdout += text;
