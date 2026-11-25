@@ -42,8 +42,14 @@ header { padding: 14px 16px 8px; display: flex; align-items: flex-start; gap: 12
 :root[data-theme="dark"] .icon-sun { display: inline; } :root[data-theme="dark"] .icon-moon { display: none; }
 header h1 { font-size: 18px; margin: 0; font-weight: 650; }
 header p { margin: 0; color: var(--muted); }
-main { padding: 0 16px 16px; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-@media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
+main { --left: 1fr; --right: 1fr; padding: 0 16px 16px; display: grid; gap: 12px 0; grid-template-columns: minmax(0, var(--left)) 12px minmax(0, var(--right)); }
+.splitter { cursor: col-resize; display: flex; justify-content: center; touch-action: none; user-select: none; }
+.splitter::before { content: ""; width: 4px; height: 100%; border-radius: 2px; background: transparent; transition: background .15s; }
+.splitter:hover::before, .splitter:focus-visible::before, .splitter.dragging::before { background: var(--accent); }
+.splitter:focus-visible { outline: none; }
+body.resizing { cursor: col-resize; user-select: none; }
+body.resizing .CodeMirror, body.resizing #output { pointer-events: none; }
+@media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); row-gap: 12px; } .splitter { display: none; } }
 .controls { grid-column: 1 / -1; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px;
   display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
@@ -237,6 +243,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
     <textarea id="editor"></textarea>
   </section>
 
+  <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" aria-label="Resize input and output" tabindex="0" aria-valuemin="15" aria-valuemax="85" aria-valuenow="50" title="Drag to resize (double-click to reset)"></div>
   <section class="pane">
     <div class="pane-head">
       <h2>Output</h2>
@@ -642,6 +649,40 @@ $("theme").onclick = () => {
   syncThemeButton();
 };
 syncThemeButton();
+
+// draggable splitter between the input and output panes
+(() => {
+  const main = document.querySelector("main"), sp = $("splitter");
+  let split = 50;
+  const set = (pct, save) => {
+    pct = Math.min(85, Math.max(15, pct));
+    split = pct;
+    main.style.setProperty("--left", pct.toFixed(2) + "fr");
+    main.style.setProperty("--right", (100 - pct).toFixed(2) + "fr");
+    sp.setAttribute("aria-valuenow", String(Math.round(pct)));
+    editor.refresh();
+    if (save) { try { localStorage.setItem("split", pct.toFixed(2)); } catch (e) {} }
+  };
+  try { const v = parseFloat(localStorage.getItem("split")); if (v) set(v, false); } catch (e) {}
+  sp.addEventListener("pointerdown", e => {
+    e.preventDefault(); sp.setPointerCapture(e.pointerId);
+    sp.classList.add("dragging"); document.body.classList.add("resizing");
+    const r = main.getBoundingClientRect(), pad = parseFloat(getComputedStyle(main).paddingLeft);
+    const move = ev => set((ev.clientX - r.left - pad) / (r.width - 2 * pad) * 100, false);
+    const up = ev => {
+      sp.releasePointerCapture(ev.pointerId); sp.classList.remove("dragging"); document.body.classList.remove("resizing");
+      sp.removeEventListener("pointermove", move); sp.removeEventListener("pointerup", up);
+      set(split, true);
+    };
+    sp.addEventListener("pointermove", move); sp.addEventListener("pointerup", up);
+  });
+  sp.addEventListener("dblclick", () => set(50, true));
+  sp.addEventListener("keydown", e => {
+    const cur = split;
+    if (e.key === "ArrowLeft") { e.preventDefault(); set(cur - 2, true); }
+    if (e.key === "ArrowRight") { e.preventDefault(); set(cur + 2, true); }
+  });
+})();
 
 // collapse the architecture figure: one line with configuration, arguments, timeout and run
 function setArchCollapsed(collapsed) {
