@@ -170,7 +170,6 @@ const CONFIGS = [
   ["cvc5-common",         "cvc5 + pre (common)",          "cvc5", `${BASE} --exp-preprocess=common`, "Table 14 row common."],
   ["cvc5+exp-no-phasing", "cvc5 + exp (no phasing)",      "cvc5", `${BASE} --exp-solver=rewrites,lemmas`, "\\confcvcplusexpnophase (Table exp)."],
   ["cvc5+exp",            "cvc5 + exp",                   "cvc5", `${BASE} --exp-solver=rewrites,lemmas,phasing`, "\\confcvcplusexp (Table exp)."],
-  ["cvc5-custom",         "cvc5 (custom arguments)",      "cvc5", "--produce-models", "Plain cvc5 with T_PBV; edit the arguments freely (try --help)."],
 ];
 const CONFIG_BY_ID = Object.fromEntries(CONFIGS.map(c => [c[0], c]));
 
