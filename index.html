@@ -85,8 +85,6 @@ button:disabled { opacity: .55; cursor: default; }
 .result.error { color: var(--bad); }
 .spin { width: 10px; height: 10px; border: 2px solid var(--muted); border-top-color: transparent; border-radius: 50%; animation: s 0.8s linear infinite; }
 @keyframes s { to { transform: rotate(360deg); } }
-.desc { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; margin-top: -4px; }
-.desc code { font-family: ui-monospace, monospace; }
 .hidden { display: none !important; }
 </style>
 <script>
@@ -125,7 +123,6 @@ button:disabled { opacity: .55; cursor: default; }
     </div>
     <button id="run" class="primary" title="Run (Ctrl+Enter)">Run</button>
   </div>
-  <div id="desc" class="desc"></div>
 
   <section class="pane">
     <div class="pane-head">
@@ -309,7 +306,6 @@ function applyConfig(id, keepArgs) {
   const c = CONFIG_BY_ID[id] || CONFIGS[0];
   cfgSel.value = c[0];
   if (!keepArgs) argsIn.value = c[3];
-  $("desc").textContent = c[4];
   const s = SOLVERS[c[2]];
   editor.setOption("mode", s.mode);
 }
