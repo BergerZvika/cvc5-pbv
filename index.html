@@ -112,11 +112,11 @@ footer a { color: var(--accent); }
 
   <section class="pane">
     <div class="pane-head">
-      <h2 id="input-title">Input</h2>
+      <h2>Input (SMT-LIB 2)</h2>
       <span class="spacer"></span>
       <select id="example" aria-label="Load an example"><option value="">Examples…</option></select>
       <button id="load" title="Load a file from disk">Open</button>
-      <input id="file" type="file" class="hidden" accept=".smt2,.smt,.bwlang,.json,.txt">
+      <input id="file" type="file" class="hidden" accept=".smt2,.smt,.txt">
       <button id="download" title="Download the input">Save</button>
       <button id="share" title="Copy a link that contains the input and the configuration">Share</button>
     </div>
@@ -147,11 +147,8 @@ footer a { color: var(--accent); }
 // ---------------------------------------------------------------------------
 // Solvers (WebAssembly builds) and the configurations of the paper
 // ---------------------------------------------------------------------------
-const WASI_SHIM = "https://cdn.jsdelivr.net/npm/@bjorn3/browser_wasi_shim@0.3.0/+esm";
-
 const SOLVERS = {
   cvc5:    { kind: "emscripten", glue: "wasm/cvc5.js", wasm: "wasm/cvc5.wasm", file: "/input.smt2",   mode: "commonlisp", factory: "createCvc5" },
-  parabit: { kind: "wasi",       wasm: "wasm/parabit.wasm",                    file: "/input.bwlang", mode: { name: "javascript", json: true }, argv0: "parabit" },
 };
 
 const BASE       = "--nl-ext-tplanes --full-saturate-quant";
@@ -174,7 +171,6 @@ const CONFIGS = [
   ["cvc5+exp-no-phasing", "cvc5 + exp (no phasing)",      "cvc5", `${BASE} --exp-solver=rewrites,lemmas`, "\\confcvcplusexpnophase (Table exp)."],
   ["cvc5+exp",            "cvc5 + exp",                   "cvc5", `${BASE} --exp-solver=rewrites,lemmas,phasing`, "\\confcvcplusexp (Table exp)."],
   ["cvc5-custom",         "cvc5 (custom arguments)",      "cvc5", "--produce-models", "Plain cvc5 with T_PBV; edit the arguments freely (try --help)."],
-  ["parabit",             "ParaBit (CAV'26)",             "parabit", "-v parabit=error", "ParaBit on the bwlang encoding (Table cav26). Prints unsat when LHS = RHS is proved, unknown otherwise. Use arguments '-v parabit=error {file} check-equals' to print the proof."],
 ];
 const CONFIG_BY_ID = Object.fromEntries(CONFIGS.map(c => [c[0], c]));
 
@@ -266,14 +262,6 @@ const EXAMPLES = /*EXAMPLES-BEGIN*/[
   "solver": "cvc5",
   "path": "benchmarks/cav26/Alive/smt2_pbv/AddSub_1043_values_0.smt2",
   "text": "(set-logic PBV)\n(declare-const k Int)\n(declare-fun C1 () PBitVec)\n(assert (= (pbvsize C1) k))\n(declare-fun %Z () PBitVec)\n(assert (= (pbvsize %Z) k))\n(declare-fun %RHS () PBitVec)\n(assert (= (pbvsize %RHS) k))\n(assert (not (= (pbvadd (pbvadd (pbvxor (pbvand %Z C1) C1) (int_to_pbv k 1)) %RHS) (pbvsub %RHS (pbvor %Z (pbvnot C1))))))\n(check-sat)\n"
- },
- {
-  "group": "CAV'26",
-  "name": "Alive AddSub_1043 (bwlang, ParaBit)",
-  "config": "parabit",
-  "solver": "parabit",
-  "path": "benchmarks/cav26/Alive/bwlang/AddSub_1043_values_0.bwlang",
-  "text": "{\n    \"name\": \"AddSub_1043_values_0\",\n    \"preconditions\": [],\n    \"lhs\": \"(bw k (+ (bw k (+ (bw k (xor (bw k (and (bw k %Z) (bw k C1))) (bw k C1))) (bw k 1))) (bw k %RHS)))\",\n    \"rhs\": \"(bw k (- (bw k %RHS) (bw k (or (bw k %Z) (bw k (not (bw k C1)))))))\"\n}\n"
  }
 ]/*EXAMPLES-END*/;
 
@@ -314,17 +302,9 @@ function applyConfig(id, keepArgs) {
   $("desc").textContent = c[4];
   const s = SOLVERS[c[2]];
   editor.setOption("mode", s.mode);
-  $("input-title").textContent = c[2] === "parabit" ? "Input (bwlang JSON)" : "Input (SMT-LIB 2)";
 }
 cfgSel.addEventListener("change", () => {
-  const prev = SOLVERS[CONFIG_BY_ID[cfgSel.dataset.prev || CONFIGS[0][0]][2]];
   applyConfig(cfgSel.value, false);
-  // switching between input languages: load a matching example
-  const now = currentConfig()[2];
-  if (prev !== SOLVERS[now]) {
-    const ex = EXAMPLES.find(e => e.solver === now);
-    if (ex) editor.setValue(ex.text);
-  }
   cfgSel.dataset.prev = cfgSel.value;
 });
 
@@ -340,12 +320,10 @@ $("load").onclick = () => $("file").click();
 $("file").onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
   editor.setValue(await f.text());
-  if (f.name.endsWith(".bwlang") && currentConfig()[2] !== "parabit") { applyConfig("parabit"); cfgSel.dataset.prev = "parabit"; }
-  else if (/\.smt2?$/.test(f.name) && currentConfig()[2] !== "cvc5") { applyConfig("cvc5-pbv"); cfgSel.dataset.prev = "cvc5-pbv"; }
   e.target.value = "";
 };
 $("download").onclick = () => {
-  const name = currentConfig()[2] === "parabit" ? "input.bwlang" : "input.smt2";
+  const name = "input.smt2";
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([editor.getValue()], { type: "text/plain" }));
   a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
@@ -430,13 +408,20 @@ function setResult(r) {
 // the compiled WebAssembly.Module is cached and passed to each worker.
 // ---------------------------------------------------------------------------
 const moduleCache = {};
+const FILE_PROTOCOL_HELP =
+  "Browsers do not let a page opened as a local file (file://) load the solver binary. " +
+  "Open the GitHub Pages URL, or serve this directory: run `python3 -m http.server 8000` in it " +
+  "and open http://localhost:8000/";
 function compileSolver(name) {
   const s = SOLVERS[name];
   if (!moduleCache[name]) {
     const url = new URL(s.wasm, location.href).href;
     moduleCache[name] = (async () => {
-      const resp = await fetch(url);
-      if (!resp.ok) throw new Error(`cannot download ${s.wasm} (HTTP ${resp.status})`);
+      if (location.protocol === "file:") throw new Error(FILE_PROTOCOL_HELP);
+      let resp;
+      try { resp = await fetch(url); }
+      catch (err) { throw new Error(`cannot download ${url} (${err.message}). ${FILE_PROTOCOL_HELP}`); }
+      if (!resp.ok) throw new Error(`cannot download ${url} (HTTP ${resp.status}): is wasm/ next to index.html?`);
       try { return await WebAssembly.compileStreaming(resp.clone()); }
       catch { return await WebAssembly.compile(await resp.arrayBuffer()); }
     })();
@@ -470,35 +455,9 @@ self.onmessage = (e) => {
   }, (err) => { if (!finished) { finished = true; done(-1, String(err)); } });
 };`;
 
-const WASI_WORKER = `
-import { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory } from "${WASI_SHIM}";
-self.onmessage = async (e) => {
-  const { module, argv, file, input } = e.data;
-  let buf = [], timer = 0;
-  const send = (stream, text) => { buf.push([stream, text]); if (!timer) timer = setTimeout(flushOut, 30); };
-  const flushOut = () => { timer = 0; if (buf.length) { postMessage({ type: "out", chunks: buf }); buf = []; } };
-  const name = file.replace(/^\\//, "");
-  const fds = [
-    new OpenFile(new File([])),
-    ConsoleStdout.lineBuffered((l) => send(1, l + "\\n")),
-    ConsoleStdout.lineBuffered((l) => send(2, l + "\\n")),
-    new PreopenDirectory("/", new Map([[name, new File(new TextEncoder().encode(input))]])),
-  ];
-  const wasi = new WASI(argv, ["RUST_LOG=error"], fds);
-  let code = 0, error;
-  try {
-    const inst = await WebAssembly.instantiate(module, { wasi_snapshot_preview1: wasi.wasiImport });
-    code = wasi.start(inst);
-  } catch (err) {
-    if (err && typeof err.code === "number") code = err.code; else { code = -1; error = String(err && err.stack || err); }
-  }
-  flushOut();
-  postMessage({ type: "done", code, error });
-};`;
-
 const workerUrls = {};
 function workerUrl(kind) {
-  return (workerUrls[kind] ||= URL.createObjectURL(new Blob([kind === "wasi" ? WASI_WORKER : EMSCRIPTEN_WORKER], { type: "text/javascript" })));
+  return (workerUrls[kind] ||= URL.createObjectURL(new Blob([EMSCRIPTEN_WORKER], { type: "text/javascript" })));
 }
 
 function splitArgs(s) {
@@ -563,7 +522,7 @@ async function run() {
   }
   if (!running || running.token !== token) return; // cancelled while downloading
 
-  const worker = new Worker(workerUrl(s.kind), s.kind === "wasi" ? { type: "module" } : {});
+  const worker = new Worker(workerUrl(s.kind));
   running.worker = worker;
   running.start = performance.now();
   const limit = Math.max(1, +$("timeout").value || 60);
@@ -600,6 +559,7 @@ async function run() {
     editor.setValue(ex ? ex.text : "(set-logic PBV)\n(declare-fun x () PBitVec)\n(assert (not (= (pbvand x x) x)))\n(check-sat)\n");
   }
   cfgSel.dataset.prev = cfgSel.value;
+  if (location.protocol === "file:") { log(FILE_PROTOCOL_HELP + "\n", "err"); setStatus("Cannot run from file://"); }
 })();
 </script>
 </body>

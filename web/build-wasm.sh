@@ -1,15 +1,14 @@
 #!/bin/bash
-# Rebuild the WebAssembly solvers used by index.html (writes wasm/).
+# Rebuild the WebAssembly cvc5 used by index.html (writes wasm/).
 #
-# usage: bash web/build-wasm.sh CVC5_SRC PARABIT_SRC
+# usage: bash web/build-wasm.sh CVC5_SRC
 #   CVC5_SRC     cvc5 checkout with T_PBV (branch pbv-theory, commit 080de3aef)
-#   PARABIT_SRC  ParaBit source (CAV'26 artifact, version 0.1.6)
 #
 # Requirements: emsdk (https://emscripten.org, tested with 7.0.1, `source emsdk_env.sh`),
-# cmake, python3, rustup with the wasm32-wasip1 target.
+# cmake, python3.
 set -euo pipefail
 ART="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CVC5_SRC="$(realpath "$1")"; PARABIT_SRC="$(realpath "$2")"
+CVC5_SRC="$(realpath "$1")"
 WORK="${WORK:-$ART/web/build}"
 mkdir -p "$WORK" "$ART/wasm"
 
@@ -32,12 +31,5 @@ for f in deps/src/Poly-EP/src/polyxx/*.cpp; do grep -q '<cstdlib>' "$f" || sed -
 make -j"$(nproc)"
 cp bin/cvc5.js bin/cvc5.wasm "$ART/wasm/"
 
-# ---------------------------------------------------------------- ParaBit
-rm -rf "$WORK/parabit"; cp -r "$PARABIT_SRC" "$WORK/parabit"; rm -rf "$WORK/parabit/target"
-cd "$WORK/parabit"
-patch -p1 < "$ART/web/patches/parabit-wasm.patch"  # drop unused tqdm (no terminal on WASI); print unsat/unknown like the paper binary
-rustup target add wasm32-wasip1
-cargo build --release --target wasm32-wasip1
-cp target/wasm32-wasip1/release/parabit.wasm "$ART/wasm/"
 
 ls -la "$ART/wasm"

@@ -16,12 +16,12 @@ Every run has a 60 s CPU-time limit and an 8 GB memory limit, as in the paper.
 ## Web playground
 
 `index.html` (served by GitHub Pages) runs the solvers in the browser, compiled to
-WebAssembly: cvc5 with T_PBV (every cvc5 configuration of the paper is a preset) and
-ParaBit. Enter SMT-LIB (or bwlang for ParaBit), pick a configuration or edit the
-arguments, and press Run; *Share* puts the input and the configuration in the URL.
-The binaries are in `wasm/`; `web/build-wasm.sh` rebuilds them from source (patches in
-`web/patches/`). Pbv/Pbv+, SwInE and the OOPSLA'26 solvers are native only.
-Locally: `python3 -m http.server` in this directory, then open http://localhost:8000.
+WebAssembly: cvc5 with T_PBV (every cvc5 configuration of the paper is a preset).
+Enter SMT-LIB, pick a configuration or edit the arguments, and press Run; *Share* puts the input and the configuration in the URL.
+The binary is in `wasm/`; `web/build-wasm.sh` rebuilds it from source (patch in
+`web/patches/`). The other solvers are native only.
+Locally it must be served over HTTP (opening the file directly cannot load the binary):
+`python3 -m http.server 8000` in this directory, then open http://localhost:8000/.
 
 Not in the Git repository (over GitHub's 100 MB file limit): `solvers/unb-kind`,
 `solvers/unb-ric3`, `benchmarks/paper-benchmarks.tar.gz` and
