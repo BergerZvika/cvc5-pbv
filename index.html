@@ -193,6 +193,52 @@ button.comp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
   border: 1.5px solid var(--muted); border-radius: 6px; background: transparent; }
 .solve-box .comp-title { font: 15px "Times New Roman", serif; }
 .sc { font-variant: small-caps; }
+/* section links under the components (as in the paper's figure) */
+.cvc5-box { padding-bottom: 17px; }
+.cw { position: relative; display: inline-flex; }
+.cw > .secref { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 2px; }
+.solve-box .cw { align-items: center; gap: 4px; }
+.solve-box .cw > .secref { position: static; transform: none; margin: 0; }
+.secref { font: 11px/1.2 system-ui, sans-serif; color: var(--accent); background: none; border: 0; padding: 0 2px; border-radius: 3px;
+  cursor: pointer; white-space: nowrap; }
+.secref:hover { text-decoration: underline; }
+.secref[aria-expanded="true"] { background: var(--accent); color: #fff; text-decoration: none; }
+.secref:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* the paper panel: section text and extended tables */
+.paper { grid-column: 1 / -1; border: 1px solid var(--border); border-radius: 8px; background: var(--code-bg); min-width: 0;
+  display: flex; flex-direction: column; max-height: min(46vh, 520px); }
+.paper[hidden] { display: none; }
+.paper-head { display: flex; align-items: baseline; gap: 10px; padding: 7px 10px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.paper-head .ptitle { font-weight: 650; font-size: 14px; }
+.paper-head .pnum { color: var(--muted); font-size: 12px; }
+.paper-head .spacer { flex: 1; }
+.paper-head button { padding: 3px 9px; }
+.paper-body { overflow: auto; padding: 4px 14px 12px; font-size: 13.5px; line-height: 1.55; min-height: 0; }
+.paper-body .note { color: var(--muted); font-size: 12.5px; margin: 8px 0 0; }
+.paper-body p { margin: 8px 0; }
+.paper-body h3 { font-size: 14px; margin: 16px 0 6px; }
+.paper-body h3.ext { color: var(--accent); border-top: 1px dashed var(--border); padding-top: 12px; }
+.paper-body h4 { font-size: 13.5px; margin: 12px 0 4px; }
+.paper-body .cite { color: var(--accent); cursor: help; }
+.paper-body a.xref { color: var(--accent); text-decoration: none; } .paper-body a.xref:hover { text-decoration: underline; }
+.paper-body .sc { font-variant: small-caps; }
+.paper-body figure { margin: 12px 0; }
+.paper-body figcaption { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+.paper-body .tbl-scroll { overflow-x: auto; }
+.paper-body table { border-collapse: collapse; border-top: 1.5px solid var(--fg); border-bottom: 1.5px solid var(--fg); font-size: 13px; margin: 0 auto; }
+.paper-body th, .paper-body td { padding: 3px 10px; vertical-align: top; }
+.paper-body thead tr:last-child th { border-bottom: 1px solid var(--fg); }
+.paper-body tr.rule td { border-top: 1px solid var(--border); }
+.paper-body .hfill { float: right; padding-left: 1.5em; color: var(--muted); }
+.paper-body .example { border-left: 3px solid var(--border); padding: 2px 10px; margin: 10px 0; }
+.paper-body ol.algo { list-style: none; counter-reset: ln; padding: 6px 10px; margin: 0; border-top: 1px solid var(--fg); border-bottom: 1px solid var(--fg); }
+.paper-body ol.algo li { counter-increment: ln; position: relative; }
+.paper-body ol.algo li::before { content: counter(ln) ":"; position: absolute; left: -.2em; transform: translateX(-100%); color: var(--muted); font-size: 11px; }
+.paper-body ol.algo { padding-left: 2.4em; }
+.paper-body pre { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 8px; overflow: auto; font-size: 12px; }
+.paper-body .footnotes { font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 6px; }
+.paper-body .katex { font-size: 1.05em; }
+.paper-body .katex-display { overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
 .legend { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); white-space: nowrap; }
 @media (max-width: 1180px) { .arch { grid-template-columns: minmax(0, 1fr); }
   .legend { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 6px 16px; white-space: normal; } }
@@ -276,16 +322,16 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <div class="arch-fig">
         <span class="phi">&phi;</span><svg class="arrow in" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
         <div class="cvc5-box">
-          <button class="comp old" data-comp="rwb" type="button">&#x211B;&#x1D4B2;<sub>B</sub></button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
-          <button class="comp new" data-comp="lrwb" type="button">&#x2112;&#x211B;&#x1D4B2;<sub>B</sub></button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
-          <span class="comp old fixed on" title="Translation T (always on)">&#x1D4AF;</span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
-          <button class="comp new" data-comp="red" type="button" style="font-size:13px">exp<br>reducer</button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
-          <button class="comp old" data-comp="lrwa" type="button">&#x2112;&#x211B;&#x1D4B2;<sub>A</sub></button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
-          <button class="comp new" data-comp="fermat" type="button" style="font-size:13px">Fermat</button><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <span class="cw"><button class="comp old" data-comp="rwb" type="button">&#x211B;&#x1D4B2;<sub>B</sub></button><button class="secref" type="button" data-sec="rwb" aria-expanded="false" title="Show Section 5.1 of the paper">&sect;5.1</button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <span class="cw"><button class="comp new" data-comp="lrwb" type="button">&#x2112;&#x211B;&#x1D4B2;<sub>B</sub></button><button class="secref" type="button" data-sec="lrwb" aria-expanded="false" title="Show Section 5.2 of the paper">&sect;5.2</button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <span class="cw"><span class="comp old fixed on" title="Translation T (always on)">&#x1D4AF;</span><button class="secref" type="button" data-sec="t" aria-expanded="false" title="Show Section 2.2 of the paper">&sect;2.2</button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <span class="cw"><button class="comp new" data-comp="red" type="button" style="font-size:13px">exp<br>reducer</button><button class="secref" type="button" data-sec="red" aria-expanded="false" title="Show Section 4.4 of the paper">&sect;4.4</button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <span class="cw"><button class="comp old" data-comp="lrwa" type="button">&#x2112;&#x211B;&#x1D4B2;<sub>A</sub></button><button class="secref" type="button" data-sec="lrwa" aria-expanded="false" title="Show Section 4.5 of the paper">&sect;4.5</button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <span class="cw"><button class="comp new" data-comp="fermat" type="button" style="font-size:13px">Fermat</button><button class="secref" type="button" data-sec="fermat" aria-expanded="false" title="Show Section 4.6 of the paper">&sect;4.6</button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
           <div class="solve-box" title="Solve* (always on: --nl-ext-tplanes --full-saturate-quant)">
             <span class="comp-title"><span class="sc">Solve</span><sub>&#x22C6;</sub></span>
-            <button class="comp old small" data-comp="exp" type="button">exp-solver</button>
-            <button class="comp old small" data-comp="iand" type="button">&amp;<sup>&#x2115;</sup>-solver</button>
+            <span class="cw"><button class="comp old small" data-comp="exp" type="button">exp-solver</button><button class="secref" type="button" data-sec="exp" aria-expanded="false" title="Show Section 4 of the paper">&sect;4</button></span>
+            <span class="cw"><button class="comp old small" data-comp="iand" type="button">&amp;<sup>&#x2115;</sup>-solver</button><button class="secref" type="button" data-sec="iand" aria-expanded="false" title="Show Section 5.3 of the paper">&sect;5.3</button></span>
           </div>
         </div>
         <div class="arch-cap">cvc5</div>
@@ -295,6 +341,14 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <span><i class="l-old"></i>generalized component of <a href="https://drops.dagstuhl.de/storage/00lipics/lipics-vol341-sat2025/html/LIPIcs.SAT.2025.4/LIPIcs.SAT.2025.4.html" target="_blank" rel="noopener">[SAT'25]</a></span>
       <span><i class="l-new"></i>new in this paper</span>
       <span><i class="l-off"></i>off in the current arguments</span>
+    </div>
+    <div class="paper" id="paper" hidden role="region" aria-labelledby="paper-title">
+      <div class="paper-head">
+        <span class="pnum" id="paper-num"></span><span class="ptitle" id="paper-title"></span>
+        <span class="spacer"></span>
+        <button type="button" id="paper-close" title="Close the section (Esc)">Close</button>
+      </div>
+      <div class="paper-body" id="paper-body" tabindex="0"></div>
     </div>
   </div>
   </div>
@@ -513,6 +567,57 @@ function onCompClick(e) {
   syncConfigFromArgs();
 }
 document.querySelector(".arch").addEventListener("click", onCompClick);
+
+// ---------------------------------------------------------------------------
+// Paper panel: the section of the paper behind a component (paper/<comp>.json,
+// generated from the LaTeX sources by web/paper_sections.py, math pre-rendered by KaTeX)
+// ---------------------------------------------------------------------------
+const paperEl = $("paper"), paperBody = $("paper-body");
+const paperCache = {};
+let paperOpen = null, katexCss = null;
+function loadKatexCss() {
+  if (katexCss) return katexCss;
+  katexCss = new Promise(res => {
+    const l = document.createElement("link"); l.rel = "stylesheet";
+    l.href = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css";
+    l.onload = l.onerror = res; document.head.append(l);
+  });
+  return katexCss;
+}
+async function showPaper(comp) {
+  document.querySelectorAll(".secref").forEach(b => b.setAttribute("aria-expanded", String(b.dataset.sec === comp)));
+  if (paperOpen === comp || !comp) {           // second click on the same link closes it
+    paperOpen = null; paperEl.hidden = true;
+    document.querySelectorAll(".secref").forEach(b => b.setAttribute("aria-expanded", "false"));
+    return;
+  }
+  paperOpen = comp; paperEl.hidden = false;
+  if (!paperCache[comp]) { $("paper-num").textContent = ""; $("paper-title").textContent = "Loading…"; paperBody.innerHTML = ""; }
+  try {
+    const [sec] = await Promise.all([
+      paperCache[comp] || (paperCache[comp] = fetch("paper/" + comp + ".json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })),
+      loadKatexCss(),
+    ]);
+    if (paperOpen !== comp) return;
+    $("paper-num").textContent = /^\d/.test(sec.num) ? "Section " + sec.num : sec.num;
+    $("paper-title").innerHTML = sec.title;
+    paperBody.innerHTML = (sec.note ? '<p class="note">' + sec.note + "</p>" : "") + sec.html;
+    paperBody.scrollTop = 0;
+  } catch (e) {
+    delete paperCache[comp];
+    $("paper-title").textContent = "Could not load the section";
+    paperBody.textContent = location.protocol === "file:" ? FILE_PROTOCOL_HELP : String(e);
+  }
+}
+document.querySelectorAll(".secref").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); showPaper(b.dataset.sec); }));
+$("paper-close").onclick = () => showPaper(null);
+paperBody.addEventListener("click", e => {     // a reference to another component's section opens it
+  const x = e.target.closest("a.xref"); if (!x) return;
+  e.preventDefault(); if (x.dataset.sec !== paperOpen) showPaper(x.dataset.sec);
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && paperOpen && !document.querySelector("dialog[open]")) showPaper(null);
+});
 argsIn.addEventListener("input", syncConfigFromArgs);
 
 function setInputName(name) {
