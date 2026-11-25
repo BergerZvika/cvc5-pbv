@@ -44,6 +44,16 @@ header { padding: 14px 16px 8px; display: flex; align-items: flex-start; gap: 12
 header h1 { font-size: 18px; margin: 0; font-weight: 650; }
 header p { margin: 0; color: var(--muted); }
 main { --left: 1fr; --right: 1fr; padding: 0 16px 16px; display: grid; gap: 12px 0; grid-template-columns: minmax(0, var(--left)) 12px minmax(0, var(--right)); }
+/* desktop: the page fills the window exactly and the editor panes take the rest of the height,
+   so showing the architecture shrinks the panes instead of making the page scroll */
+@media (min-width: 901px) {
+  body { display: flex; flex-direction: column; height: 100vh; height: 100dvh; min-height: 560px; }
+  main { flex: 1 1 0; min-height: 0; grid-template-rows: auto minmax(0, 1fr); }
+  .pane { min-height: 0; }
+  .pane .CodeMirror { flex: 1 1 0; height: auto; min-height: 0; }
+  .out-body { flex: 1 1 0; min-height: 0; }
+  .out-body > #output { height: 100%; min-height: 0; }
+}
 .splitter { cursor: col-resize; display: flex; justify-content: center; touch-action: none; user-select: none; }
 .splitter::before { content: ""; width: 4px; height: 100%; border-radius: 2px; background: transparent; transition: background .15s; }
 .splitter:hover::before, .splitter:focus-visible::before, .splitter.dragging::before { background: var(--accent); }
@@ -51,10 +61,10 @@ main { --left: 1fr; --right: 1fr; padding: 0 16px 16px; display: grid; gap: 12px
 body.resizing { cursor: col-resize; user-select: none; }
 body.resizing .CodeMirror, body.resizing #output { pointer-events: none; }
 @media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); row-gap: 12px; } .splitter { display: none; } }
-.controls { grid-column: 1 / -1; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px;
+.controls { grid-column: 1 / -1; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
   display: flex; flex-direction: column; min-width: 0; }
 /* collapsible figure: animate the row height (0fr <-> 1fr), the gap and the opacity */
-.arch-wrap { display: grid; grid-template-rows: 1fr; margin-top: 10px; opacity: 1;
+.arch-wrap { display: grid; grid-template-rows: 1fr; margin-top: 8px; opacity: 1;
   transition: grid-template-rows .32s cubic-bezier(.2,.7,.2,1), margin-top .32s cubic-bezier(.2,.7,.2,1), opacity .24s ease; }
 .arch-wrap > .arch { overflow: hidden; min-height: 0; }
 .controls.collapsed .arch-wrap { grid-template-rows: 0fr; margin-top: 0; opacity: 0; }
@@ -134,15 +144,15 @@ button:disabled { opacity: .55; cursor: default; }
 .steps li.done .st .ck { stroke-dashoffset: 0; }
 .sbody { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 13px; }
 .sbody .sd { color: var(--muted); font-size: 12.5px; }
-.bar { flex-basis: 100%; height: 6px; border-radius: 99px; background: color-mix(in srgb, var(--border) 70%, transparent); overflow: hidden; margin-top: 5px; }
-.bar i { display: block; height: 100%; width: 0; border-radius: inherit; transition: width .2s linear;
+.pbar { flex-basis: 100%; height: 6px; border-radius: 99px; background: color-mix(in srgb, var(--border) 70%, transparent); overflow: hidden; margin-top: 5px; }
+.pbar i { display: block; height: 100%; width: 0; border-radius: inherit; transition: width .2s linear;
   background: linear-gradient(90deg, var(--old-bd), var(--accent), var(--new-bd)); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; }
 @keyframes shimmer { to { background-position: -200% 0; } }
 .setup-note { display: flex; gap: 7px; align-items: flex-start; justify-content: center; text-align: left; margin: 0; padding-top: 10px;
   border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
 .setup-note svg { flex: none; margin-top: 2px; }
 .setup.compact .setup-art, .setup.compact .setup-note { display: none; }
-@media (prefers-reduced-motion: reduce) { .setup-art *, .bar i, .steps li.active .st { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .setup-art *, .pbar i, .steps li.active .st { animation: none !important; } }
 
 html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
   transition: background-color .4s ease, color .4s ease, border-color .4s ease, fill .4s ease, stroke .4s ease, box-shadow .4s ease !important; }
@@ -159,12 +169,12 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *
 .controls.collapsed #arch-toggle svg { transform: rotate(180deg); }
 .arch-scroll { overflow-x: auto; padding-bottom: 2px; min-width: 0; }
 .arch-fig { display: inline-flex; flex-direction: column; align-items: center; min-width: 100%; }
-.cvc5-box { display: flex; align-items: center; gap: 0; border: 1.5px solid var(--fg); border-radius: 8px; padding: 8px 10px; }
+.cvc5-box { display: flex; align-items: center; gap: 0; border: 1.5px solid var(--fg); border-radius: 8px; padding: 5px 10px; }
 .arch-cap { font-size: 12px; margin-top: 1px; line-height: 1.2; }
 .phi { font: italic 18px/1 "Times New Roman", serif; padding-right: 2px; }
 .arrow { flex: none; width: 26px; height: 12px; color: var(--fg); }
-.comp { font: 15px/1.15 "Times New Roman", Times, serif; color: var(--fg); min-width: 50px; min-height: 38px;
-  padding: 6px 10px; border-radius: 6px; border: 1.5px dashed var(--muted); background: transparent;
+.comp { font: 15px/1.15 "Times New Roman", Times, serif; color: var(--fg); min-width: 50px; min-height: 34px;
+  padding: 4px 10px; border-radius: 6px; border: 1.5px dashed var(--muted); background: transparent;
   display: inline-flex; align-items: center; justify-content: center; text-align: center; opacity: .55;
   transition: background .15s, border-color .15s, opacity .15s, box-shadow .15s; }
 .comp.small { font-size: 13px; min-height: 30px; min-width: 0; padding: 3px 10px; }
@@ -327,7 +337,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
         <p id="setup-text">This is the first run on this device, so the page is setting up the solver. cvc5 has been compiled to WebAssembly, which lets your browser run it directly.</p>
         <ol class="steps">
           <li data-step="download"><span class="st"><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div class="sbody"><b>Download</b><span class="sd" id="st-dl">cvc5 for WebAssembly · 19.4 MB</span>
-            <div class="bar"><i id="st-bar"></i></div></div></li>
+            <div class="pbar"><i id="st-bar"></i></div></div></li>
           <li data-step="compile"><span class="st"><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div class="sbody"><b>Prepare</b><span class="sd">your browser compiles it to fast native code</span></div></li>
           <li data-step="start"><span class="st"><svg class="ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div class="sbody"><b>Start</b><span class="sd">cvc5 starts on your input</span></div></li>
         </ol>
@@ -397,6 +407,12 @@ const editor = CodeMirror.fromTextArea($("editor"), {
   lineNumbers: true, matchBrackets: true, mode: "commonlisp", indentUnit: 2, lineWrapping: false,
   extraKeys: { "Ctrl-Enter": () => run(), "Cmd-Enter": () => run() },
 });
+// the editor's height follows the layout (architecture shown/hidden, window size): keep CodeMirror in sync
+if (window.ResizeObserver) {
+  let raf = 0;
+  new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => editor.refresh()); })
+    .observe(editor.getWrapperElement());
+}
 
 for (const [id, label, solver] of CONFIGS) {
   const o = document.createElement("option");
