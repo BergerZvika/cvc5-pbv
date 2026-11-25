@@ -373,7 +373,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <button id="bench" title="Choose a benchmark of the paper">Benchmarks</button>
       <button id="load" title="Load a file from disk">Open</button>
       <input id="file" type="file" class="hidden" accept=".smt2,.smt,.txt">
-      <button id="download" title="Download the input">Save</button>
+      <button id="download" title="Save the input to a file">Save</button>
       <span class="zoom" role="group" aria-label="Input text size" data-zoom="in"><button type="button" data-step="-1" title="Smaller input text" aria-label="Smaller input text"><span class="za">A</span>&minus;</button><button type="button" data-step="1" title="Larger input text" aria-label="Larger input text"><span class="za">A</span>+</button></span>
     </div>
     <textarea id="editor"></textarea>
@@ -783,7 +783,7 @@ $("file").onchange = async e => {
   e.target.value = "";
 };
 $("download").onclick = () => {
-  const name = "input.smt2";
+  const name = inputPath.split("/").pop() || "input.smt2";   // the benchmark's (or opened file's) name
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([editor.getValue()], { type: "text/plain" }));
   a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
