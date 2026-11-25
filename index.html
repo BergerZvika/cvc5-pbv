@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PBV Solver Playground</title>
+<meta name="description" content="Run the solvers of the Parametric Bit-Vectors in cvc5 artifact in your browser (WebAssembly).">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/commonlisp/commonlisp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<style>
+:root {
+  --bg: #f7f7f5; --panel: #ffffff; --fg: #1d1d1f; --muted: #6b6b70; --border: #dcdcdf;
+  --accent: #2f6fde; --accent-fg: #ffffff; --ok: #1f8a4c; --bad: #c0392b; --warn: #b7791f;
+  --code-bg: #fbfbfa; --err: #b03a2e;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141416; --panel: #1c1c1f; --fg: #e8e8ea; --muted: #9a9aa2; --border: #33333a;
+    --accent: #5b8ff0; --accent-fg: #0b0b0c; --ok: #4cc27f; --bad: #f07167; --warn: #e0a84a;
+    --code-bg: #18181b; --err: #f08a80;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141416; --panel: #1c1c1f; --fg: #e8e8ea; --muted: #9a9aa2; --border: #33333a;
+  --accent: #5b8ff0; --accent-fg: #0b0b0c; --ok: #4cc27f; --bad: #f07167; --warn: #e0a84a;
+  --code-bg: #18181b; --err: #f08a80;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--fg);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+header { padding: 14px 16px 8px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+header h1 { font-size: 18px; margin: 0; font-weight: 650; }
+header p { margin: 0; color: var(--muted); }
+main { padding: 0 16px 16px; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+@media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
+.bar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: end;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+.field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.field.grow { flex: 1 1 280px; }
+label { font-size: 12px; color: var(--muted); }
+select, input[type=text], input[type=number] {
+  font: inherit; color: var(--fg); background: var(--code-bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 8px; min-width: 0; max-width: 100%; }
+input#args { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; width: 100%; }
+input#timeout { width: 80px; }
+select#example { max-width: 200px; }
+button { font: inherit; border: 1px solid var(--border); background: var(--panel); color: var(--fg);
+  padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; min-width: 84px; }
+button:disabled { opacity: .55; cursor: default; }
+.pane { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; min-width: 0; }
+.pane-head { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.pane-head h2 { font-size: 13px; margin: 0; font-weight: 600; }
+.pane-head .spacer { flex: 1; }
+.CodeMirror { height: 62vh; min-height: 300px; background: var(--code-bg); color: var(--fg);
+  font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; border-radius: 0 0 8px 8px; }
+.CodeMirror-gutters { background: var(--code-bg); border-right: 1px solid var(--border); }
+.CodeMirror-linenumber { color: var(--muted); }
+.CodeMirror-cursor { border-left-color: var(--fg); }
+.CodeMirror-selected, .CodeMirror-focused .CodeMirror-selected { background: color-mix(in srgb, var(--accent) 25%, transparent); }
+.cm-s-default .cm-keyword { color: var(--accent); }
+.cm-s-default .cm-variable, .cm-s-default .cm-property { color: var(--fg); }
+.cm-s-default .cm-number { color: var(--ok); }
+.cm-s-default .cm-string { color: var(--warn); }
+.cm-s-default .cm-comment { color: var(--muted); }
+.cm-s-default .cm-bracket, .cm-s-default .cm-def { color: var(--fg); }
+.CodeMirror-matchingbracket { color: var(--accent) !important; text-decoration: underline; }
+#output { margin: 0; padding: 10px; height: 62vh; min-height: 300px; overflow: auto; white-space: pre-wrap; word-break: break-word;
+  font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); border-radius: 0 0 8px 8px; }
+#output .err { color: var(--err); }
+#output .meta { color: var(--muted); }
+.status { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.result { font-weight: 700; font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.result.unsat, .result.sat { color: var(--ok); }
+.result.unknown, .result.timeout { color: var(--warn); }
+.result.error { color: var(--bad); }
+.spin { width: 10px; height: 10px; border: 2px solid var(--muted); border-top-color: transparent; border-radius: 50%; animation: s 0.8s linear infinite; }
+@keyframes s { to { transform: rotate(360deg); } }
+.desc { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; margin-top: -4px; }
+.desc code { font-family: ui-monospace, monospace; }
+footer { padding: 0 16px 20px; color: var(--muted); font-size: 12px; }
+footer a { color: var(--accent); }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>PBV Solver Playground</h1>
+  <p>Solvers from the <em>Parametric Bit-Vectors in cvc5</em> artifact, compiled to WebAssembly and run locally in your browser.</p>
+</header>
+<main>
+  <div class="bar">
+    <div class="field">
+      <label for="config">Configuration</label>
+      <select id="config"></select>
+    </div>
+    <div class="field grow">
+      <label for="args">Arguments <span title="{file} is replaced by the input file; otherwise the file is appended">(input file: <code>{file}</code>)</span></label>
+      <input id="args" type="text" spellcheck="false" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="timeout">Timeout (s)</label>
+      <input id="timeout" type="number" min="1" value="60">
+    </div>
+    <button id="run" class="primary" title="Run (Ctrl+Enter)">Run</button>
+  </div>
+  <div id="desc" class="desc"></div>
+
+  <section class="pane">
+    <div class="pane-head">
+      <h2 id="input-title">Input</h2>
+      <span class="spacer"></span>
+      <select id="example" aria-label="Load an example"><option value="">Examples…</option></select>
+      <button id="load" title="Load a file from disk">Open</button>
+      <input id="file" type="file" class="hidden" accept=".smt2,.smt,.bwlang,.json,.txt">
+      <button id="download" title="Download the input">Save</button>
+      <button id="share" title="Copy a link that contains the input and the configuration">Share</button>
+    </div>
+    <textarea id="editor"></textarea>
+  </section>
+
+  <section class="pane">
+    <div class="pane-head">
+      <h2>Output</h2>
+      <span id="result" class="result hidden"></span>
+      <span class="spacer"></span>
+      <span id="status" class="status">Ready</span>
+      <button id="copy" title="Copy output">Copy</button>
+      <button id="clear" title="Clear output">Clear</button>
+    </div>
+    <pre id="output"></pre>
+  </section>
+</main>
+<footer>
+  The first run of a solver downloads its WebAssembly binary (cvc5 is ~19&nbsp;MB, cached afterwards).
+  Runs are limited by browser memory (4&nbsp;GB) and are slower than the native binaries, so timings are not comparable to the paper.
+  Paper configurations and flags: <code>scripts/run_experiments_paper-tables.sh</code>.
+</footer>
+
+<script>
+"use strict";
+
+// ---------------------------------------------------------------------------
+// Solvers (WebAssembly builds) and the configurations of the paper
+// ---------------------------------------------------------------------------
+const WASI_SHIM = "https://cdn.jsdelivr.net/npm/@bjorn3/browser_wasi_shim@0.3.0/+esm";
+
+const SOLVERS = {
+  cvc5:    { kind: "emscripten", glue: "wasm/cvc5.js", wasm: "wasm/cvc5.wasm", file: "/input.smt2",   mode: "commonlisp", factory: "createCvc5" },
+  parabit: { kind: "wasi",       wasm: "wasm/parabit.wasm",                    file: "/input.bwlang", mode: { name: "javascript", json: true }, argv0: "parabit" },
+};
+
+const BASE       = "--nl-ext-tplanes --full-saturate-quant";
+const PIAND      = "--piand-lemmas=complement,mask,mask-sym,subset-trans,pow2-idiom";
+const EXP_CORE   = "--exp-solver=rewrites,lemmas,phasing --exp-preprocess=multiply --fermat-little-theorem";
+
+// [id, label, solver, args, description]
+const CONFIGS = [
+  ["cvc5-pbv",            "cvc5-pbv (full T_PBV)",        "cvc5", `${BASE} ${EXP_CORE} --learned-rewrite-rules=int,pbv ${PIAND} --pbv-rewrites`, "\\confcvc — all PBV techniques (Tables pbv, cav26, oopsla)."],
+  ["cvc5",                "cvc5 (base)",                  "cvc5", BASE, "\\confcvcbase — cvc5 baseline."],
+  ["cvc5-exp",            "cvc5-exp",                     "cvc5", `${BASE} ${EXP_CORE} --learned-rewrite-rules=int`, "\\confcvcexp — exponentiation solver with the integer learned rules."],
+  ["cvc5+rr",             "cvc5 + rr",                    "cvc5", `${BASE} --pbv-rewrites`, "\\confcvcexprr — PBV RARE rewrites."],
+  ["cvc5+lr",             "cvc5 + lr",                    "cvc5", `${BASE} --learned-rewrite-rules=pbv`, "\\confcvcexplr — learned PBV rewrite rules."],
+  ["cvc5+piand",          "cvc5 + piand",                 "cvc5", `${BASE} ${PIAND}`, "\\confcvcexppiandexists — parametric iand lemmas."],
+  ["cvc5+fermat",         "cvc5 + fermat",                "cvc5", `${BASE} --fermat-little-theorem`, "\\confcvcfermat (Table exp)."],
+  ["cvc5+mod-reducer",    "cvc5 + mod-reducer",           "cvc5", `${BASE} --learned-rewrite-rules=int`, "\\confcvcmodred (Table exp)."],
+  ["cvc5+pre",            "cvc5 + pre (multiply)",        "cvc5", `${BASE} --exp-preprocess=multiply`, "\\confcvcpre (Table exp; Table 14 row mul)."],
+  ["cvc5-div",            "cvc5 + pre (div)",             "cvc5", `${BASE} --exp-preprocess=div`, "Table 14 row div."],
+  ["cvc5-common",         "cvc5 + pre (common)",          "cvc5", `${BASE} --exp-preprocess=common`, "Table 14 row common."],
+  ["cvc5+exp-no-phasing", "cvc5 + exp (no phasing)",      "cvc5", `${BASE} --exp-solver=rewrites,lemmas`, "\\confcvcplusexpnophase (Table exp)."],
+  ["cvc5+exp",            "cvc5 + exp",                   "cvc5", `${BASE} --exp-solver=rewrites,lemmas,phasing`, "\\confcvcplusexp (Table exp)."],
+  ["cvc5-custom",         "cvc5 (custom arguments)",      "cvc5", "--produce-models", "Plain cvc5 with T_PBV; edit the arguments freely (try --help)."],
+  ["parabit",             "ParaBit (CAV'26)",             "parabit", "-v parabit=error", "ParaBit on the bwlang encoding (Table cav26). Prints unsat when LHS = RHS is proved, unknown otherwise. Use arguments '-v parabit=error {file} check-equals' to print the proof."],
+];
+const CONFIG_BY_ID = Object.fromEntries(CONFIGS.map(c => [c[0], c]));
+
+const EXAMPLES = /*EXAMPLES-BEGIN*/[
+ {
+  "group": "PBV (SAT'25)",
+  "name": "Alive: AndOrXor_2453",
+  "config": "cvc5-pbv",
+  "solver": "cvc5",
+  "path": "benchmarks/pbv/sat25/alive/AndOrXor_2453_values_0.smt2",
+  "text": "(set-logic PBV)\n(declare-fun %y () PBitVec)\n(declare-fun %x () PBitVec)\n(assert (not (= (not (pbvslt %x %y)) (pbvsge %x %y))))\n(check-sat)\n"
+ },
+ {
+  "group": "PBV (SAT'25)",
+  "name": "Alive: InstCombineShift366-1",
+  "config": "cvc5-pbv",
+  "solver": "cvc5",
+  "path": "benchmarks/pbv/sat25/alive/InstCombineShift366-1_values_0.smt2",
+  "text": "(set-logic PBV)\n(declare-fun C2 () PBitVec)\n(declare-fun C1 () PBitVec)\n(declare-fun %X () PBitVec)\n(assert (> (pbvsize %X) (pbvsize C2)))\n(assert (let ((_let_0 (pbvshl %X C1))) (let ((_let_1 (pzero_extend (- (pbvsize %X) (pbvsize C2)) C2))) (and (pbvult C1 (int_to_pbv (pbvsize %X) (pbvsize %X))) (pbvult C2 (int_to_pbv (pbvsize C2) (pbvsize C2))) (not (= (pbvshl (pextract _let_0 (- (pbvsize C2) 1) 0) C2) (pextract (pbvand (pbvshl _let_0 _let_1) (pbvshl (pbvsub (pbvshl (int_to_pbv (pbvsize %X) 1) (int_to_pbv (pbvsize %X) (pbvsize C2))) (int_to_pbv (pbvsize %X) 1)) _let_1)) (- (pbvsize C2) 1) 0)))))))\n(check-sat)\n"
+ },
+ {
+  "group": "PBV (SAT'25)",
+  "name": "IC: check_bvuge_bvor_kbit",
+  "config": "cvc5-pbv",
+  "solver": "cvc5",
+  "path": "benchmarks/pbv/sat25/ic/check_bvuge_bvor_kbit.smt2",
+  "text": "(set-logic PBV)\n(set-option :produce-models true)\n\n(declare-fun s () PBitVec)\n(declare-fun t () PBitVec)\n\n(define-fun udivtotal ((a PBitVec) (b PBitVec)) PBitVec\n  (ite (= b (int_to_pbv (pbvsize s) 0)) (pbvnot (int_to_pbv (pbvsize s) 0)) (pbvudiv a b))\n)\n(define-fun uremtotal ((a PBitVec) (b PBitVec)) PBitVec\n  (ite (= b (int_to_pbv (pbvsize s) 0)) a (pbvurem a b))\n)\n(define-fun min () PBitVec\n  (pbvnot (pbvlshr (pbvnot (int_to_pbv (pbvsize s) 0)) (int_to_pbv (pbvsize s) 1)))\n)\n(define-fun max () PBitVec\n  (pbvnot min)\n)\n\n(define-fun SC ((s PBitVec) (t PBitVec)) Bool\ntrue\n)\n\n(assert\n (not\n  (and\n  (=> (SC s t) (exists ((x PBitVec)) (pbvuge (pbvor x s) t)))\n  (=> (exists ((x PBitVec)) (pbvuge (pbvor x s) t)) (SC s t))\n  )\n )\n)\n(check-sat)\n"
+ },
+ {
+  "group": "PBV (SAT'25)",
+  "name": "Rewrite: test-pbv658",
+  "config": "cvc5+lr",
+  "solver": "cvc5",
+  "path": "benchmarks/pbv/sat25/rewrite/terms_size3/test-pbv658.smt2",
+  "text": "(set-logic PBV)\n(set-option :produce-models true)\n(set-option :incremental true)\n(declare-const s PBitVec)\n(declare-const t PBitVec)\n(assert (distinct (pbvand s (pbvshl (pbvnot (int_to_pbv (pbvsize s) 0)) t)) (pbvshl (pbvlshr s t) t)))\n(check-sat)\n(exit)\n"
+ },
+ {
+  "group": "PBV (SAT'25)",
+  "name": "SyRew: formulas_bvmul-100",
+  "config": "cvc5-pbv",
+  "solver": "cvc5",
+  "path": "benchmarks/pbv/sat25/syrew/formulas_bvmul-100.smt2",
+  "text": "(set-logic PBV)\n(declare-fun s () PBitVec)\n(assert (distinct (pbvult s (pbvand (int_to_pbv (pbvsize s) 1) (pbvmul s s))) (distinct s s)))\n(check-sat)\n"
+ },
+ {
+  "group": "PBV (SAT'25)",
+  "name": "Mutant (sat): test-pbv262",
+  "config": "cvc5-pbv",
+  "solver": "cvc5",
+  "path": "benchmarks/pbv/sat25/mut/cade19_mutant/terms_size3-sat-bvneg-to-bvnot/test-pbv262.smt2",
+  "text": "(set-logic PBV)\n(declare-const s PBitVec)\n(declare-const t PBitVec)\n(assert (distinct (pbvadd s (pbvnot (pbvand t (int_to_pbv (pbvsize s) 0)))) s))\n(check-sat)\n(exit)\n"
+ },
+ {
+  "group": "QF_PBV",
+  "name": "Single width: bv-term-small-rw_12",
+  "config": "cvc5-pbv",
+  "solver": "cvc5",
+  "path": "benchmarks/pbv/QF_PBV/QF_PBV_Single_bitwidth/20190311-bv-term-small-rw-Noetzli/bv-term-small-rw_12.smt2",
+  "text": "(set-info :smt-lib-version 2.6)\n(set-logic PBV)\n(set-info :source |\nGenerated by: Andres Noetzli, Andrew Reynolds, Haniel Barbosa, Aina Niemetz, Mathias Preiner, Clark Barrett, Cesare Tinelli\nGenerated on: 2018-11-08\nGenerator: CVC4\nApplication: Rewrite rule verification\nPublications: \"Syntax-Guided Rewrite Rule Enumeration for SMT Solvers\" by A. Noetzli, A. Reynolds, H. Barbosa, A. Niemetz, M. Preiner, C. Barrett, and C. Tinelli, SAT 2019.\n|)\n(set-info :license \"https://creativecommons.org/licenses/by/4.0/\")\n(set-info :category \"industrial\")\n(declare-fun s () PBitVec)\n(declare-fun t () PBitVec)\n(assert (not (= (pbvand t s) (pbvand s t))))\n(check-sat)\n(exit)\n"
+ },
+ {
+  "group": "QF_PBV",
+  "name": "Two widths: a176test0022",
+  "config": "cvc5-pbv",
+  "solver": "cvc5",
+  "path": "benchmarks/pbv/QF_PBV/QF_PBV_two_bitwidth/bench_ab/a176test0022.smt2",
+  "text": "(set-info :smt-lib-version 2.6)\n(set-logic PBV)\n(set-info :source |\nBit-vector benchmarks from Dawson Engler's tool contributed by Vijay Ganesh\n(vganesh@stanford.edu).  Translated into SMT-LIB format by Clark Barrett using\nCVC3.\n\n|)\n(set-info :category \"industrial\")\n(declare-fun n () PBitVec)\n(declare-fun c () PBitVec)\n(assert (not (pbvult n (int_to_pbv (pbvsize n) 16))))\n(check-sat)\n(exit)\n"
+ },
+ {
+  "group": "QF_PBV",
+  "name": "Multiple widths: adpcm",
+  "config": "cvc5-pbv",
+  "solver": "cvc5",
+  "path": "benchmarks/pbv/QF_PBV/QF_PBV_multiple_bitwidth/bmc-bv/adpcm.smt2",
+  "text": "(set-info :smt-lib-version 2.6)\n(set-logic PBV)\n(set-info :category \"industrial\")\n(set-info :source |\n  Generated using using the Low-Level Bounded Model Checker LLBMC.\n  C files used in the paper: Florian Merz, Stephan Falke, Carsten Sinz: LLBMC: Bounded Model Checking of C and C++ Programs Using a Compiler IR. VSTTE 2012: 146-161\n|)\n(assert (let (($x1 false)) (let (($x2 (not $x1))) $x2)))\n(check-sat)\n(exit)\n"
+ },
+ {
+  "group": "EIA (exponentiation)",
+  "name": "Rewrite: test-pbv0",
+  "config": "cvc5-exp",
+  "solver": "cvc5",
+  "path": "benchmarks/exp-eva/sat25-no-piand/rewrite/formulas_size2/test-pbv0_translate.smt2",
+  "text": "(set-logic ALL)\n(set-option :produce-models true)\n(declare-const k Int)\n(declare-const _pbv_s Int)\n(declare-const _pbv_t Int)\n(assert (distinct true true))\n(check-sat)\n(exit)\n"
+ },
+ {
+  "group": "CAV'26",
+  "name": "Alive AddSub_1043 (SMT-LIB, PBV)",
+  "config": "cvc5-pbv",
+  "solver": "cvc5",
+  "path": "benchmarks/cav26/Alive/smt2_pbv/AddSub_1043_values_0.smt2",
+  "text": "(set-logic PBV)\n(declare-const k Int)\n(declare-fun C1 () PBitVec)\n(assert (= (pbvsize C1) k))\n(declare-fun %Z () PBitVec)\n(assert (= (pbvsize %Z) k))\n(declare-fun %RHS () PBitVec)\n(assert (= (pbvsize %RHS) k))\n(assert (not (= (pbvadd (pbvadd (pbvxor (pbvand %Z C1) C1) (int_to_pbv k 1)) %RHS) (pbvsub %RHS (pbvor %Z (pbvnot C1))))))\n(check-sat)\n"
+ },
+ {
+  "group": "CAV'26",
+  "name": "Alive AddSub_1043 (bwlang, ParaBit)",
+  "config": "parabit",
+  "solver": "parabit",
+  "path": "benchmarks/cav26/Alive/bwlang/AddSub_1043_values_0.bwlang",
+  "text": "{\n    \"name\": \"AddSub_1043_values_0\",\n    \"preconditions\": [],\n    \"lhs\": \"(bw k (+ (bw k (+ (bw k (xor (bw k (and (bw k %Z) (bw k C1))) (bw k C1))) (bw k 1))) (bw k %RHS)))\",\n    \"rhs\": \"(bw k (- (bw k %RHS) (bw k (or (bw k %Z) (bw k (not (bw k C1)))))))\"\n}\n"
+ }
+]/*EXAMPLES-END*/;
+
+// ---------------------------------------------------------------------------
+// UI
+// ---------------------------------------------------------------------------
+const $ = id => document.getElementById(id);
+const cfgSel = $("config"), argsIn = $("args"), runBtn = $("run"), out = $("output");
+const statusEl = $("status"), resultEl = $("result"), exSel = $("example");
+
+const editor = CodeMirror.fromTextArea($("editor"), {
+  lineNumbers: true, matchBrackets: true, mode: "commonlisp", indentUnit: 2, lineWrapping: false,
+  extraKeys: { "Ctrl-Enter": () => run(), "Cmd-Enter": () => run() },
+});
+
+for (const [id, label, solver] of CONFIGS) {
+  const o = document.createElement("option");
+  o.value = id; o.textContent = label; o.dataset.solver = solver;
+  cfgSel.append(o);
+}
+function fillExamples() {
+  exSel.length = 1;
+  const groups = {};
+  for (const [i, ex] of EXAMPLES.entries()) (groups[ex.group] ||= []).push([i, ex]);
+  for (const [g, list] of Object.entries(groups)) {
+    const og = document.createElement("optgroup"); og.label = g;
+    for (const [i, ex] of list) { const o = document.createElement("option"); o.value = i; o.textContent = ex.name; og.append(o); }
+    exSel.append(og);
+  }
+}
+fillExamples();
+
+function currentConfig() { return CONFIG_BY_ID[cfgSel.value]; }
+function applyConfig(id, keepArgs) {
+  const c = CONFIG_BY_ID[id] || CONFIGS[0];
+  cfgSel.value = c[0];
+  if (!keepArgs) argsIn.value = c[3];
+  $("desc").textContent = c[4];
+  const s = SOLVERS[c[2]];
+  editor.setOption("mode", s.mode);
+  $("input-title").textContent = c[2] === "parabit" ? "Input (bwlang JSON)" : "Input (SMT-LIB 2)";
+}
+cfgSel.addEventListener("change", () => {
+  const prev = SOLVERS[CONFIG_BY_ID[cfgSel.dataset.prev || CONFIGS[0][0]][2]];
+  applyConfig(cfgSel.value, false);
+  // switching between input languages: load a matching example
+  const now = currentConfig()[2];
+  if (prev !== SOLVERS[now]) {
+    const ex = EXAMPLES.find(e => e.solver === now);
+    if (ex) editor.setValue(ex.text);
+  }
+  cfgSel.dataset.prev = cfgSel.value;
+});
+
+exSel.addEventListener("change", () => {
+  const ex = EXAMPLES[+exSel.value];
+  exSel.value = "";
+  if (!ex) return;
+  editor.setValue(ex.text);
+  if (ex.config && CONFIG_BY_ID[ex.config]) { applyConfig(ex.config, false); cfgSel.dataset.prev = ex.config; }
+});
+
+$("load").onclick = () => $("file").click();
+$("file").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  editor.setValue(await f.text());
+  if (f.name.endsWith(".bwlang") && currentConfig()[2] !== "parabit") { applyConfig("parabit"); cfgSel.dataset.prev = "parabit"; }
+  else if (/\.smt2?$/.test(f.name) && currentConfig()[2] !== "cvc5") { applyConfig("cvc5-pbv"); cfgSel.dataset.prev = "cvc5-pbv"; }
+  e.target.value = "";
+};
+$("download").onclick = () => {
+  const name = currentConfig()[2] === "parabit" ? "input.bwlang" : "input.smt2";
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([editor.getValue()], { type: "text/plain" }));
+  a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+$("copy").onclick = () => navigator.clipboard.writeText(out.textContent).then(() => flash($("copy"), "Copied"));
+$("clear").onclick = () => { out.textContent = ""; resultEl.classList.add("hidden"); };
+runBtn.onclick = () => (running ? cancel("cancelled") : run());
+
+function flash(btn, text) { const t = btn.textContent; btn.textContent = text; setTimeout(() => (btn.textContent = t), 1200); }
+
+// ---------------------------------------------------------------------------
+// Share links: #c=<config>&a=<args>&t=<timeout>&i=<deflate-raw, base64url>
+// ---------------------------------------------------------------------------
+const b64u = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const unb64u = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
+async function pipe(bytes, stream) { return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer()); }
+async function encodeInput(text) {
+  const raw = new TextEncoder().encode(text);
+  if (!("CompressionStream" in window)) return "u" + b64u(raw);
+  const z = await pipe(raw, new CompressionStream("deflate-raw"));
+  let s = ""; for (let i = 0; i < z.length; i += 0x8000) s += String.fromCharCode(...z.subarray(i, i + 0x8000));
+  return "z" + btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function decodeInput(s) {
+  const bytes = unb64u(s.slice(1));
+  return new TextDecoder().decode(s[0] === "z" ? await pipe(bytes, new DecompressionStream("deflate-raw")) : bytes);
+}
+$("share").onclick = async () => {
+  const p = new URLSearchParams({ c: cfgSel.value, a: argsIn.value, t: $("timeout").value, i: await encodeInput(editor.getValue()) });
+  const url = location.href.split("#")[0] + "#" + p.toString();
+  history.replaceState(null, "", url);
+  try { await navigator.clipboard.writeText(url); flash($("share"), "Link copied"); }
+  catch { flash($("share"), "Link in address bar"); }
+};
+async function loadFromHash() {
+  if (location.hash.length < 2) return false;
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (!p.has("i") && !p.has("c")) return false;
+  applyConfig(p.get("c") || CONFIGS[0][0], false);
+  cfgSel.dataset.prev = cfgSel.value;
+  if (p.has("a")) argsIn.value = p.get("a");
+  if (p.has("t")) $("timeout").value = p.get("t");
+  if (p.has("i")) { try { editor.setValue(await decodeInput(p.get("i"))); } catch (e) { log(`Could not decode the shared input: ${e}\n`, "err"); } }
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// Output
+// ---------------------------------------------------------------------------
+let pending = [], scheduled = false, outBytes = 0;
+const OUT_LIMIT = 4 << 20;
+function log(text, cls) {
+  if (outBytes > OUT_LIMIT) return;
+  outBytes += text.length;
+  if (outBytes > OUT_LIMIT) text += "\n[output truncated]\n";
+  pending.push([text, cls]);
+  if (!scheduled) { scheduled = true; requestAnimationFrame(flush); }
+}
+function flush() {
+  scheduled = false;
+  const atBottom = out.scrollTop + out.clientHeight >= out.scrollHeight - 8;
+  const frag = document.createDocumentFragment();
+  for (const [t, cls] of pending) {
+    if (cls) { const s = document.createElement("span"); s.className = cls; s.textContent = t; frag.append(s); }
+    else frag.append(t);
+  }
+  pending = [];
+  out.append(frag);
+  if (atBottom) out.scrollTop = out.scrollHeight;
+}
+function setStatus(text, busy) {
+  statusEl.replaceChildren();
+  if (busy) { const sp = document.createElement("span"); sp.className = "spin"; statusEl.append(sp); }
+  statusEl.append(text);
+}
+function setResult(r) {
+  resultEl.className = "result " + r; resultEl.textContent = r; resultEl.classList.remove("hidden");
+}
+
+// ---------------------------------------------------------------------------
+// Running: one fresh Web Worker per run (so Cancel / timeout can terminate it);
+// the compiled WebAssembly.Module is cached and passed to each worker.
+// ---------------------------------------------------------------------------
+const moduleCache = {};
+function compileSolver(name) {
+  const s = SOLVERS[name];
+  if (!moduleCache[name]) {
+    const url = new URL(s.wasm, location.href).href;
+    moduleCache[name] = (async () => {
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`cannot download ${s.wasm} (HTTP ${resp.status})`);
+      try { return await WebAssembly.compileStreaming(resp.clone()); }
+      catch { return await WebAssembly.compile(await resp.arrayBuffer()); }
+    })();
+    moduleCache[name].catch(() => delete moduleCache[name]);
+  }
+  return moduleCache[name];
+}
+
+const EMSCRIPTEN_WORKER = `
+self.onmessage = (e) => {
+  const { glue, factory, module, argv, file, input } = e.data;
+  let buf = [], timer = 0;
+  const send = (stream, text) => { buf.push([stream, text]); if (!timer) timer = setTimeout(flushOut, 30); };
+  const flushOut = () => { timer = 0; if (buf.length) { postMessage({ type: "out", chunks: buf }); buf = []; } };
+  const done = (code, error) => { flushOut(); postMessage({ type: "done", code, error }); };
+  try { importScripts(glue); } catch (err) { done(-1, "cannot load " + glue + ": " + err); return; }
+  let finished = false;
+  self[factory]({
+    noInitialRun: true,
+    print: (t) => send(1, t + "\\n"),
+    printErr: (t) => send(2, t + "\\n"),
+    instantiateWasm(imports, cb) { WebAssembly.instantiate(module, imports).then((i) => cb(i)); return {}; },
+    onExit(code) { if (!finished) { finished = true; done(code); } },
+    onAbort(what) { if (!finished) { finished = true; done(-1, "aborted: " + what); } },
+  }).then((M) => {
+    M.FS.writeFile(file, input);
+    let code;
+    try { code = M.callMain(argv); }
+    catch (err) { if (err && err.name === "ExitStatus") code = err.status; else { finished = true; done(-1, String(err && err.stack || err)); return; } }
+    if (!finished) { finished = true; done(code); }
+  }, (err) => { if (!finished) { finished = true; done(-1, String(err)); } });
+};`;
+
+const WASI_WORKER = `
+import { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory } from "${WASI_SHIM}";
+self.onmessage = async (e) => {
+  const { module, argv, file, input } = e.data;
+  let buf = [], timer = 0;
+  const send = (stream, text) => { buf.push([stream, text]); if (!timer) timer = setTimeout(flushOut, 30); };
+  const flushOut = () => { timer = 0; if (buf.length) { postMessage({ type: "out", chunks: buf }); buf = []; } };
+  const name = file.replace(/^\\//, "");
+  const fds = [
+    new OpenFile(new File([])),
+    ConsoleStdout.lineBuffered((l) => send(1, l + "\\n")),
+    ConsoleStdout.lineBuffered((l) => send(2, l + "\\n")),
+    new PreopenDirectory("/", new Map([[name, new File(new TextEncoder().encode(input))]])),
+  ];
+  const wasi = new WASI(argv, ["RUST_LOG=error"], fds);
+  let code = 0, error;
+  try {
+    const inst = await WebAssembly.instantiate(module, { wasi_snapshot_preview1: wasi.wasiImport });
+    code = wasi.start(inst);
+  } catch (err) {
+    if (err && typeof err.code === "number") code = err.code; else { code = -1; error = String(err && err.stack || err); }
+  }
+  flushOut();
+  postMessage({ type: "done", code, error });
+};`;
+
+const workerUrls = {};
+function workerUrl(kind) {
+  return (workerUrls[kind] ||= URL.createObjectURL(new Blob([kind === "wasi" ? WASI_WORKER : EMSCRIPTEN_WORKER], { type: "text/javascript" })));
+}
+
+function splitArgs(s) {
+  const args = []; let cur = "", q = null, has = false;
+  for (const ch of s) {
+    if (q) { if (ch === q) q = null; else cur += ch; }
+    else if (ch === '"' || ch === "'") { q = ch; has = true; }
+    else if (/\s/.test(ch)) { if (cur || has) args.push(cur); cur = ""; has = false; }
+    else cur += ch;
+  }
+  if (cur || has) args.push(cur);
+  return args;
+}
+
+let running = null; // { worker, timer, start, stdout }
+function finish(result, extra) {
+  if (!running) return;
+  const { worker, timer, start } = running;
+  clearTimeout(timer); worker.terminate();
+  running = null;
+  const secs = ((performance.now() - start) / 1000).toFixed(2);
+  if (extra) log(extra, "err");
+  log(`\n[${result} after ${secs} s wall time]\n`, "meta");
+  setResult(result);
+  setStatus(`Finished in ${secs} s`);
+  runBtn.textContent = "Run"; runBtn.classList.add("primary");
+}
+function cancel(reason) { if (running) finish(reason === "timeout" ? "timeout" : "cancelled"); }
+
+function classify(stdout, code, error) {
+  if (error) return "error";
+  const lines = stdout.split("\n").map(l => l.trim()).filter(Boolean);
+  for (const l of lines) if (l === "unsat" || l === "sat" || l === "unknown") return l;
+  if (lines.some(l => /^\(error/.test(l))) return "error";
+  return code === 0 ? "done" : "error";
+}
+
+async function run() {
+  if (running) return;
+  const [, , solverName, ] = currentConfig();
+  const s = SOLVERS[solverName];
+  const input = editor.getValue();
+  let argv = splitArgs(argsIn.value);
+  if (argv.includes("{file}")) argv = argv.map(a => (a === "{file}" ? s.file : a));
+  else argv.push(s.file);
+  if (s.argv0) argv.unshift(s.argv0);
+
+  out.textContent = ""; outBytes = 0; pending = [];
+  resultEl.classList.add("hidden");
+  log(`$ ${solverName} ${(s.argv0 ? argv.slice(1) : argv).join(" ")}\n`, "meta");
+  runBtn.textContent = "Cancel"; runBtn.classList.remove("primary");
+
+  const token = {};
+  running = { token, worker: null, timer: 0, start: performance.now(), stdout: "" };
+  let module;
+  try {
+    setStatus(moduleCache[solverName] ? "Starting…" : `Downloading ${solverName}…`, true);
+    module = await compileSolver(solverName);
+  } catch (err) {
+    if (running && running.token === token) { running.worker = { terminate() {} }; finish("error", `${err}\n`); }
+    return;
+  }
+  if (!running || running.token !== token) return; // cancelled while downloading
+
+  const worker = new Worker(workerUrl(s.kind), s.kind === "wasi" ? { type: "module" } : {});
+  running.worker = worker;
+  running.start = performance.now();
+  const limit = Math.max(1, +$("timeout").value || 60);
+  running.timer = setTimeout(() => cancel("timeout"), limit * 1000);
+  setStatus("Running…", true);
+
+  worker.onmessage = (e) => {
+    const m = e.data;
+    if (!running || running.worker !== worker) return;
+    if (m.type === "out") {
+      for (const [stream, text] of m.chunks) {
+        if (stream === 1) running.stdout += text;
+        if (stream === 2 && /warning: unsupported syscall/.test(text)) continue;
+        log(text, stream === 2 ? "err" : null);
+      }
+    } else if (m.type === "done") {
+      finish(classify(running.stdout, m.code, m.error), m.error ? `${m.error}\n` : (m.code ? `exit code ${m.code}\n` : ""));
+    }
+  };
+  worker.onerror = (e) => { e.preventDefault(); finish("error", `${e.message || "worker error"}\n`); };
+  worker.postMessage({
+    glue: s.glue ? new URL(s.glue, location.href).href : null, factory: s.factory,
+    module, argv, file: s.file, input,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Init
+// ---------------------------------------------------------------------------
+(async () => {
+  if (!(await loadFromHash())) {
+    applyConfig(CONFIGS[0][0], false);
+    const ex = EXAMPLES.find(e => e.solver === "cvc5");
+    editor.setValue(ex ? ex.text : "(set-logic PBV)\n(declare-fun x () PBitVec)\n(assert (not (= (pbvand x x) x)))\n(check-sat)\n");
+  }
+  cfgSel.dataset.prev = cfgSel.value;
+})();
+</script>
+</body>
+</html>
