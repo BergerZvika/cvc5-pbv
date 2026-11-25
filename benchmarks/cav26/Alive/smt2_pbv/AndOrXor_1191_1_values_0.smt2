@@ -1,6 +1,0 @@
-(set-logic PBV)
-(declare-const k Int)
-(declare-fun %op0RHS () PBitVec)
-(assert (= (pbvsize %op0RHS) k))
-(assert (and (pbvult %op0RHS (int_to_pbv k k)) (not (= (pbvand (pbvshl (int_to_pbv k 1) %op0RHS) (int_to_pbv k 1)) (pzero_extend (- k 1) (ite (= %op0RHS (int_to_pbv k 0)) (int_to_pbv 1 1) (int_to_pbv 1 0)))))))
-(check-sat)

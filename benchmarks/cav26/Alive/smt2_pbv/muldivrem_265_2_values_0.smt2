@@ -1,8 +1,0 @@
-(set-logic PBV)
-(declare-const k Int)
-(declare-fun %X () PBitVec)
-(assert (= (pbvsize %X) k))
-(declare-fun %Y () PBitVec)
-(assert (= (pbvsize %Y) k))
-(assert (let ((_let_0 (pbvudiv (ite (= (pextract %X (- k 1) (- k 1)) (int_to_pbv 1 1)) (pbvneg %X) %X) (ite (= (pextract %Y (- k 1) (- k 1)) (int_to_pbv 1 1)) (pbvneg %Y) %Y)))) (let ((_let_1 (= (pbvmul (ite (xor (= (pextract %X (- k 1) (- k 1)) (int_to_pbv 1 1)) (= (pextract %Y (- k 1) (- k 1)) (int_to_pbv 1 1))) (pbvneg _let_0) _let_0) %Y) %X))) (and (or (not (= %X (pbvshl (int_to_pbv k 1) (pbvsub (int_to_pbv k k) (int_to_pbv k 1))))) (not (= %Y (pbvnot (int_to_pbv k 0))))) _let_1 (not (= %Y (int_to_pbv k 0))) (not _let_1)))))
-(check-sat)

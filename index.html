@@ -427,8 +427,11 @@ const TOP_DESC = {
   "pbv": "PBV: SAT'25 sets and QF_PBV",
   "cav26": "CAV'26 sets in PBV",
   "exp-eva": "EIA: integer exponentiation",
-  "ubmc": "OOPSLA'26 sets in PBV",
+  "oopsla26": "sets in PBV",
 };
+// folder names shown differently from their URL-safe names
+const DIR_LABEL = { "oopsla26": "OOPSLA'26" };
+const shownPath = p => p.split("/").map((d, i) => (i === 0 && DIR_LABEL[d]) || d).join("/");
 const ICONS = {
   dir: '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M1.5 3.5h4.2l1.5 1.6h7.3v7.4h-13z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
   file: '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3.5 1.5h6l3 3v10h-9z M9.5 1.5v3h3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
@@ -447,7 +450,18 @@ async function loadBenchIndex() {
       if (!node.dirs.has(d)) node.dirs.set(d, { dirs: new Map(), files: [], count: 0 });
       node = node.dirs.get(d); node.count++;
     }
-    node.files.push([parts[parts.length - 1], path, size]);
+    node.files.push([parts[parts.length - 1], path, size, path]);
+  }
+  // aliases: a folder listed in several places but stored once (e.g. the Alive set)
+  const find = p => p.split("/").reduce((n, d) => n && n.dirs.get(d), benchTree);
+  for (const [alias, target] of Object.entries(benchIndex.aliases || {})) {
+    const src = find(target); if (!src) continue;
+    const parts = alias.split("/"); let node = benchTree;
+    for (const d of parts) {
+      if (!node.dirs.has(d)) node.dirs.set(d, { dirs: new Map(), files: [], count: 0 });
+      node = node.dirs.get(d); node.count += src.files.length;
+    }
+    for (const [name, real, size] of src.files) node.files.push([name, real, size, `${alias}/${name}`]);
   }
 }
 function benchItem(icon, name, meta, onClick, desc) {
@@ -468,7 +482,7 @@ function renderBench() {
     const hits = benchIndex.files.filter(([p]) => { const l = p.toLowerCase(); return terms.every(t => l.includes(t)); });
     const crumb = document.createElement("button"); crumb.type = "button"; crumb.textContent = `${hits.length} matches`;
     crumbs.append(crumb);
-    for (const [path, size] of hits.slice(0, 300)) list.append(benchItem("file", path, fmtSize(size), () => openBenchmark(path)));
+    for (const [path, size] of hits.slice(0, 300)) list.append(benchItem("file", shownPath(path), fmtSize(size), () => openBenchmark(path, path)));
     if (hits.length > 300) { const m = document.createElement("div"); m.className = "bd-empty"; m.textContent = `Showing 300 of ${hits.length}; refine the search.`; list.append(m); }
     if (!hits.length) { const m = document.createElement("div"); m.className = "bd-empty"; m.textContent = "No benchmark matches."; list.append(m); }
     return;
@@ -477,23 +491,23 @@ function renderBench() {
   const path = ["benchmarks", ...benchDir];
   path.forEach((name, i) => {
     if (i) { const sep = document.createElement("span"); sep.textContent = "/"; crumbs.append(sep); }
-    const b = document.createElement("button"); b.type = "button"; b.textContent = name;
+    const b = document.createElement("button"); b.type = "button"; b.textContent = (i === 1 && DIR_LABEL[name]) || name;
     b.onclick = () => { benchDir = benchDir.slice(0, i); renderBench(); };
     crumbs.append(b);
   });
   for (const d of benchDir) node = node.dirs.get(d);
   for (const [name, sub] of [...node.dirs].sort((a, b) => a[0].localeCompare(b[0])))
-    list.append(benchItem("dir", name, `${sub.count.toLocaleString()} files`, () => { benchDir = [...benchDir, name]; renderBench(); list.scrollTop = 0; },
+    list.append(benchItem("dir", (!benchDir.length && DIR_LABEL[name]) || name, `${sub.count.toLocaleString()} files`, () => { benchDir = [...benchDir, name]; renderBench(); list.scrollTop = 0; },
       benchDir.length ? "" : TOP_DESC[name]));
-  for (const [name, p, size] of node.files.sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true })))
-    list.append(benchItem("file", name, fmtSize(size), () => openBenchmark(p)));
+  for (const [name, p, size, shown] of node.files.sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true })))
+    list.append(benchItem("file", name, fmtSize(size), () => openBenchmark(p, shown)));
 }
-async function openBenchmark(path) {
+async function openBenchmark(path, shown) {
   try {
     const r = await fetch("benchmarks/" + path.split("/").map(encodeURIComponent).join("/"));
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     editor.setValue(await r.text());
-    setInputName(path);
+    setInputName(shownPath(shown || path));
     $("bench-dialog").close();
   } catch (err) { $("bd-foot").textContent = `Could not load ${path}: ${err.message}`; }
 }
