@@ -194,26 +194,26 @@ button.comp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
 .solve-box .comp-title { font: 15px "Times New Roman", serif; }
 .sc { font-variant: small-caps; }
 /* section links under the components (as in the paper's figure) */
-.cvc5-box { padding-bottom: 17px; }
+.cvc5-box { padding-bottom: 20px; }
 .cw { position: relative; display: inline-flex; }
-.cw > .secref { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 2px; }
+.cw > .secref { position: absolute; top: 100%; left: 50%; margin: 1px 0 0 -9px; }
 .solve-box .cw { align-items: center; gap: 4px; }
-.solve-box .cw > .secref { position: static; transform: none; margin: 0; }
-.secref { font: 11px/1.2 system-ui, sans-serif; color: var(--accent); background: none; border: 0; padding: 0 2px; border-radius: 3px;
-  cursor: pointer; white-space: nowrap; }
-.secref:hover { text-decoration: underline; }
-.secref[aria-expanded="true"] { background: var(--accent); color: #fff; text-decoration: none; }
-.secref:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-/* the paper panel: section text and extended tables */
-.paper { grid-column: 1 / -1; border: 1px solid var(--border); border-radius: 8px; background: var(--code-bg); min-width: 0;
-  display: flex; flex-direction: column; max-height: min(46vh, 520px); }
-.paper[hidden] { display: none; }
-.paper-head { display: flex; align-items: baseline; gap: 10px; padding: 7px 10px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-.paper-head .ptitle { font-weight: 650; font-size: 14px; }
-.paper-head .pnum { color: var(--muted); font-size: 12px; }
+.solve-box .cw > .secref { position: static; margin: 0; }
+.secref { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 50%;
+  background: none; color: var(--muted); cursor: pointer; opacity: .75; transition: color .15s, background .15s, opacity .15s, transform .15s; }
+.secref:hover, .secref:focus-visible { color: var(--accent); opacity: 1; background: color-mix(in srgb, var(--accent) 14%, transparent); transform: scale(1.15); outline: none; }
+.secref svg { display: block; }
+/* the paper window: section text and extended tables (a modal dialog, like the benchmark chooser) */
+dialog#paper { width: min(980px, calc(100vw - 32px)); height: min(760px, calc(100vh - 48px)); padding: 0; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--panel); color: var(--fg); box-shadow: 0 12px 40px rgba(0,0,0,.35); }
+dialog#paper[open] { display: flex; flex-direction: column; }
+dialog#paper::backdrop { background: rgba(0,0,0,.45); }
+.paper-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.paper-head .ptitle { font-weight: 650; font-size: 15px; margin: 0; }
+.paper-head .pnum { color: var(--muted); font-size: 12px; white-space: nowrap; }
 .paper-head .spacer { flex: 1; }
-.paper-head button { padding: 3px 9px; }
-.paper-body { overflow: auto; padding: 4px 14px 12px; font-size: 13.5px; line-height: 1.55; min-height: 0; }
+.paper-body { flex: 1; overflow: auto; padding: 4px 18px 16px; font-size: 14px; line-height: 1.6; min-height: 0; background: var(--code-bg); }
+.paper-foot { padding: 7px 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
 .paper-body .note { color: var(--muted); font-size: 12.5px; margin: 8px 0 0; }
 .paper-body p { margin: 8px 0; }
 .paper-body h3 { font-size: 14px; margin: 16px 0 6px; }
@@ -322,16 +322,16 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <div class="arch-fig">
         <span class="phi">&phi;</span><svg class="arrow in" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
         <div class="cvc5-box">
-          <span class="cw"><button class="comp old" data-comp="rwb" type="button">&#x211B;&#x1D4B2;<sub>B</sub></button><button class="secref" type="button" data-sec="rwb" aria-expanded="false" title="Show Section 5.1 of the paper">&sect;5.1</button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
-          <span class="cw"><button class="comp new" data-comp="lrwb" type="button">&#x2112;&#x211B;&#x1D4B2;<sub>B</sub></button><button class="secref" type="button" data-sec="lrwb" aria-expanded="false" title="Show Section 5.2 of the paper">&sect;5.2</button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
-          <span class="cw"><span class="comp old fixed on" title="Translation T (always on)">&#x1D4AF;</span><button class="secref" type="button" data-sec="t" aria-expanded="false" title="Show Section 2.2 of the paper">&sect;2.2</button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
-          <span class="cw"><button class="comp new" data-comp="red" type="button" style="font-size:13px">exp<br>reducer</button><button class="secref" type="button" data-sec="red" aria-expanded="false" title="Show Section 4.4 of the paper">&sect;4.4</button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
-          <span class="cw"><button class="comp old" data-comp="lrwa" type="button">&#x2112;&#x211B;&#x1D4B2;<sub>A</sub></button><button class="secref" type="button" data-sec="lrwa" aria-expanded="false" title="Show Section 4.5 of the paper">&sect;4.5</button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
-          <span class="cw"><button class="comp new" data-comp="fermat" type="button" style="font-size:13px">Fermat</button><button class="secref" type="button" data-sec="fermat" aria-expanded="false" title="Show Section 4.6 of the paper">&sect;4.6</button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <span class="cw"><button class="comp old" data-comp="rwb" type="button">&#x211B;&#x1D4B2;<sub>B</sub></button><button class="secref" type="button" data-sec="rwb" aria-haspopup="dialog" title="About this component: Section 5.1 of the paper" aria-label="About this component (Section 5.1 of the paper)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/><path d="M8 7.2v4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <span class="cw"><button class="comp new" data-comp="lrwb" type="button">&#x2112;&#x211B;&#x1D4B2;<sub>B</sub></button><button class="secref" type="button" data-sec="lrwb" aria-haspopup="dialog" title="About this component: Section 5.2 of the paper" aria-label="About this component (Section 5.2 of the paper)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/><path d="M8 7.2v4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <span class="cw"><span class="comp old fixed on" title="Translation T (always on)">&#x1D4AF;</span><button class="secref" type="button" data-sec="t" aria-haspopup="dialog" title="About this component: Section 2.2 of the paper" aria-label="About this component (Section 2.2 of the paper)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/><path d="M8 7.2v4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <span class="cw"><button class="comp new" data-comp="red" type="button" style="font-size:13px">exp<br>reducer</button><button class="secref" type="button" data-sec="red" aria-haspopup="dialog" title="About this component: Section 4.4 of the paper" aria-label="About this component (Section 4.4 of the paper)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/><path d="M8 7.2v4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <span class="cw"><button class="comp old" data-comp="lrwa" type="button">&#x2112;&#x211B;&#x1D4B2;<sub>A</sub></button><button class="secref" type="button" data-sec="lrwa" aria-haspopup="dialog" title="About this component: Section 4.5 of the paper" aria-label="About this component (Section 4.5 of the paper)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/><path d="M8 7.2v4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
+          <span class="cw"><button class="comp new" data-comp="fermat" type="button" style="font-size:13px">Fermat</button><button class="secref" type="button" data-sec="fermat" aria-haspopup="dialog" title="About this component: Section 4.6 of the paper" aria-label="About this component (Section 4.6 of the paper)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/><path d="M8 7.2v4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></span><svg class="arrow" viewBox="0 0 26 12" aria-hidden="true"><path d="M1 6h19" stroke="currentColor" stroke-width="1.6"/><path d="M18 1.5 25 6l-7 4.5z" fill="currentColor"/></svg>
           <div class="solve-box" title="Solve* (always on: --nl-ext-tplanes --full-saturate-quant)">
             <span class="comp-title"><span class="sc">Solve</span><sub>&#x22C6;</sub></span>
-            <span class="cw"><button class="comp old small" data-comp="exp" type="button">exp-solver</button><button class="secref" type="button" data-sec="exp" aria-expanded="false" title="Show Section 4 of the paper">&sect;4</button></span>
-            <span class="cw"><button class="comp old small" data-comp="iand" type="button">&amp;<sup>&#x2115;</sup>-solver</button><button class="secref" type="button" data-sec="iand" aria-expanded="false" title="Show Section 5.3 of the paper">&sect;5.3</button></span>
+            <span class="cw"><button class="comp old small" data-comp="exp" type="button">exp-solver</button><button class="secref" type="button" data-sec="exp" aria-haspopup="dialog" title="About this component: Section 4 of the paper" aria-label="About this component (Section 4 of the paper)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/><path d="M8 7.2v4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></span>
+            <span class="cw"><button class="comp old small" data-comp="iand" type="button">&amp;<sup>&#x2115;</sup>-solver</button><button class="secref" type="button" data-sec="iand" aria-haspopup="dialog" title="About this component: Section 5.3 of the paper" aria-label="About this component (Section 5.3 of the paper)"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/><path d="M8 7.2v4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></span>
           </div>
         </div>
         <div class="arch-cap">cvc5</div>
@@ -341,14 +341,6 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <span><i class="l-old"></i>generalized component of <a href="https://drops.dagstuhl.de/storage/00lipics/lipics-vol341-sat2025/html/LIPIcs.SAT.2025.4/LIPIcs.SAT.2025.4.html" target="_blank" rel="noopener">[SAT'25]</a></span>
       <span><i class="l-new"></i>new in this paper</span>
       <span><i class="l-off"></i>off in the current arguments</span>
-    </div>
-    <div class="paper" id="paper" hidden role="region" aria-labelledby="paper-title">
-      <div class="paper-head">
-        <span class="pnum" id="paper-num"></span><span class="ptitle" id="paper-title"></span>
-        <span class="spacer"></span>
-        <button type="button" id="paper-close" title="Close the section (Esc)">Close</button>
-      </div>
-      <div class="paper-body" id="paper-body" tabindex="0"></div>
     </div>
   </div>
   </div>
@@ -408,6 +400,15 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
 </main>
 <footer class="site-foot">&copy; <a href="https://bergerzvika.github.io/Advanced-Programming/home.html" target="_blank" rel="noopener">Zvika Berger</a> 2027</footer>
 
+<dialog id="paper" aria-labelledby="paper-title">
+  <div class="paper-head">
+    <h2 class="ptitle" id="paper-title"></h2><span class="pnum" id="paper-num"></span>
+    <span class="spacer"></span>
+    <button type="button" id="paper-close">Close</button>
+  </div>
+  <div class="paper-body" id="paper-body" tabindex="0"></div>
+  <div class="paper-foot">From the paper; hover a citation for the reference.</div>
+</dialog>
 <dialog id="bench-dialog" aria-labelledby="bd-title">
   <div class="bd-head">
     <h2 id="bd-title">Benchmarks</h2>
@@ -585,13 +586,9 @@ function loadKatexCss() {
   return katexCss;
 }
 async function showPaper(comp) {
-  document.querySelectorAll(".secref").forEach(b => b.setAttribute("aria-expanded", String(b.dataset.sec === comp)));
-  if (paperOpen === comp || !comp) {           // second click on the same link closes it
-    paperOpen = null; paperEl.hidden = true;
-    document.querySelectorAll(".secref").forEach(b => b.setAttribute("aria-expanded", "false"));
-    return;
-  }
-  paperOpen = comp; paperEl.hidden = false;
+  if (!comp) { paperEl.close(); return; }
+  paperOpen = comp;
+  if (!paperEl.open) paperEl.showModal();
   if (!paperCache[comp]) { $("paper-num").textContent = ""; $("paper-title").textContent = "Loading…"; paperBody.innerHTML = ""; }
   try {
     const [sec] = await Promise.all([
@@ -611,13 +608,13 @@ async function showPaper(comp) {
 }
 document.querySelectorAll(".secref").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); showPaper(b.dataset.sec); }));
 $("paper-close").onclick = () => showPaper(null);
+paperEl.addEventListener("close", () => { paperOpen = null; });
+paperEl.addEventListener("click", e => { if (e.target === e.currentTarget) paperEl.close(); });   // click on the backdrop
 paperBody.addEventListener("click", e => {     // a reference to another component's section opens it
   const x = e.target.closest("a.xref"); if (!x) return;
   e.preventDefault(); if (x.dataset.sec !== paperOpen) showPaper(x.dataset.sec);
 });
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape" && paperOpen && !document.querySelector("dialog[open]")) showPaper(null);
-});
+
 argsIn.addEventListener("input", syncConfigFromArgs);
 
 function setInputName(name) {
