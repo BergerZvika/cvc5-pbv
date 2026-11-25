@@ -624,6 +624,10 @@ paperBody.addEventListener("click", e => {     // a reference to another compone
 
 argsIn.addEventListener("input", syncConfigFromArgs);
 
+// the input's path as shown in the command line of the output: the benchmark's real path in
+// the repository (benchmarks/...), or the name of a file opened from disk
+let inputPath = "input.smt2";
+const shellQuote = a => /^[\w@%+=:,.\/-]+$/.test(a) ? a : "'" + a.replace(/'/g, "'\\''") + "'";
 function setInputName(name) {
   const el = $("bench-name"); el.replaceChildren();
   const b = document.createElement("bdi"); b.dir = "ltr"; b.textContent = name || "Input"; el.append(b);
@@ -725,6 +729,7 @@ async function openBenchmark(path, shown) {
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     editor.setValue(await r.text());
     setInputName(shownPath(shown || path));
+    inputPath = "benchmarks/" + path;
     $("bench-dialog").close();
   } catch (err) { $("bd-foot").textContent = `Could not load ${path}: ${err.message}`; }
 }
@@ -752,6 +757,7 @@ $("file").onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
   editor.setValue(await f.text());
   setInputName(f.name);
+  inputPath = f.name;
   e.target.value = "";
 };
 $("download").onclick = () => {
@@ -1066,7 +1072,9 @@ async function run() {
 
   out.textContent = ""; outBytes = 0; pending = [];
   resultEl.classList.add("hidden");
-  log(`$ ${solverName} ${(s.argv0 ? argv.slice(1) : argv).join(" ")}\n`, "meta");
+  // the solver reads its copy at s.file; show the input's real path instead
+  const shown = (s.argv0 ? argv.slice(1) : argv).map(a => a === s.file ? shellQuote(inputPath) : a);
+  log(`$ ${solverName} ${shown.join(" ")}\n`, "meta");
   runBtn.textContent = "Cancel"; runBtn.classList.remove("primary");
 
   const token = {};
@@ -1125,6 +1133,7 @@ async function run() {
   applyConfig(CONFIGS[0][0], false);
   editor.setValue(DEFAULT_INPUT.text);
   setInputName(shownPath(DEFAULT_INPUT.path));
+  inputPath = "benchmarks/" + DEFAULT_INPUT.path;
   cfgSel.dataset.prev = cfgSel.value;
   if (location.protocol === "file:") { log(FILE_PROTOCOL_HELP + "\n", "err"); setStatus("Cannot run from file://"); }
 })();
