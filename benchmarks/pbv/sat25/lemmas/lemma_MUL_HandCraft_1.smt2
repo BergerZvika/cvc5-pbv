@@ -1,0 +1,12 @@
+(set-logic PBV)
+
+(declare-const x PBitVec)
+(declare-const s PBitVec)
+(declare-const t PBitVec)
+(declare-const i PBitVec)
+(define-fun lemma_MUL_HC1 ((x PBitVec) (s PBitVec) (t PBitVec)) Bool (=> (= s (pbvshl (int_to_pbv (pbvsize x) 1) i)) (= t (pbvshl x i))))
+(assert (pbvuge i (int_to_pbv (pbvsize x) 0)))
+(assert (pbvult i (int_to_pbv (pbvsize x) (pbvsize x))))
+(assert (= t (pbvmul x s)))
+(assert (not (lemma_MUL_HC1 x s t)))
+(check-sat)

@@ -1,0 +1,12 @@
+; sext_xor_sub_thm (combined form)
+; ∀ (x : BitVec wt) (c : BitVec 1) (wt : Int), 1 < wt →
+;   (signExtend wt c ^^^ x) - signExtend wt c = ite(c = 1, 0 - x, x)
+(set-logic PBV)
+(declare-const wt Int)
+(declare-const c PBitVec)
+(assert (= (pbvsize c) 1))
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wt))
+(assert (< 1 wt))
+(assert (not (= (pbvsub (pbvxor (psign_extend (- wt 1) c) x) (psign_extend (- wt 1) c)) (ite (= c (int_to_pbv 1 1)) (pbvsub (int_to_pbv wt 0) x) x))))
+(check-sat)

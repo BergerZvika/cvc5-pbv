@@ -1,0 +1,6 @@
+(set-logic PBV)
+(declare-fun C2 () PBitVec)
+(declare-fun %a () PBitVec)
+(declare-fun C1 () PBitVec)
+(assert (and (pbvult C1 C2) (pbvult %a C1) (= %a C2)))
+(check-sat)

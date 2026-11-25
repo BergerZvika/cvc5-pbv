@@ -1,0 +1,6 @@
+(set-logic ALL)
+(declare-const k Int)
+(declare-const _pbv_%X Int)
+(declare-const _pbv_%Y Int)
+(assert (not true))
+(check-sat)

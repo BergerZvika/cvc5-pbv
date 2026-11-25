@@ -1,0 +1,12 @@
+; ∀ (x y : BitVec wa) (wt : Int), wa < wt →
+;   ofBool (zeroExtend wt x != zeroExtend wt y) = ofBool (x != y)
+(set-logic PBV)
+(declare-const wa Int)
+(declare-const wt Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wa))
+(declare-const y PBitVec)
+(assert (= (pbvsize y) wa))
+(assert (< wa wt))
+(assert (not (= (ite (= (pzero_extend (- wt wa) x) (pzero_extend (- wt wa) y)) (int_to_pbv 1 0) (int_to_pbv 1 1)) (ite (= x y) (int_to_pbv 1 0) (int_to_pbv 1 1)))))
+(check-sat)

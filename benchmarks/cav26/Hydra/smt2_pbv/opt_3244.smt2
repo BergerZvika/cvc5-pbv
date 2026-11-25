@@ -1,0 +1,8 @@
+(set-logic PBV)
+(declare-const t Int)
+(declare-fun newvar52 () Bool)
+(declare-fun v0 () Bool)
+(assert (< 1 t))
+(assert (< 1 t))
+(assert (distinct (distinct (int_to_pbv t 0) (pbvxor (pzero_extend (- t 1) (ite v0 (int_to_pbv 1 1) (int_to_pbv 1 0))) (pzero_extend (- t 1) (ite newvar52 (int_to_pbv 1 1) (int_to_pbv 1 0))))) (xor v0 newvar52)))
+(check-sat)

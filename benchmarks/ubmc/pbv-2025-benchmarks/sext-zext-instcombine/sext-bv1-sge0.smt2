@@ -1,0 +1,10 @@
+; ∀ (c : BitVec 1) (wt : Int), 1 < wt →
+;   ofBool (signExtend wt c ≥ₛ 0) = bvnot c (= c ^^^ 1#1)
+; (sext(0)=0 >=s 0 true → result 1 = bvnot(0); sext(1)=-1 <s 0 → result 0 = bvnot(1))
+(set-logic PBV)
+(declare-const wt Int)
+(declare-const c PBitVec)
+(assert (= (pbvsize c) 1))
+(assert (< 1 wt))
+(assert (not (= (ite (pbvsge (psign_extend (- wt 1) c) (int_to_pbv wt 0)) (int_to_pbv 1 1) (int_to_pbv 1 0)) (pbvnot c))))
+(check-sat)

@@ -1,0 +1,13 @@
+; ∀ (x y : BitVec wa) (wt : Int), wa < wt →
+;   signExtend wt (bvnot (x &&& y)) = bvnot (signExtend wt x &&& signExtend wt y)
+; (De Morgan + sext distributes through bvnot, AND, OR)
+(set-logic PBV)
+(declare-const wa Int)
+(declare-const wt Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wa))
+(declare-const y PBitVec)
+(assert (= (pbvsize y) wa))
+(assert (< wa wt))
+(assert (not (= (psign_extend (- wt wa) (pbvnot (pbvand x y))) (pbvnot (pbvand (psign_extend (- wt wa) x) (psign_extend (- wt wa) y))))))
+(check-sat)

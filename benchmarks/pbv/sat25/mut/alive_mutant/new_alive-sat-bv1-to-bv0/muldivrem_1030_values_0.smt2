@@ -1,0 +1,4 @@
+(set-logic PBV)
+(declare-fun %X () PBitVec)
+(assert (let ((_let_0 (pbvudiv (ite (= (pextract %X (- (pbvsize %X) 1) (- (pbvsize %X) 1)) (int_to_pbv 1 0)) (pbvneg %X) %X) (ite (= (pextract (pbvnot (int_to_pbv (pbvsize %X) 0)) (- (pbvsize %X) 1) (- (pbvsize %X) 1)) (int_to_pbv 1 1)) (pbvneg (pbvnot (int_to_pbv (pbvsize %X) 0))) (pbvnot (int_to_pbv (pbvsize %X) 0)))))) (and (or (not (= %X (pbvshl (int_to_pbv (pbvsize %X) 1) (pbvsub (int_to_pbv (pbvsize %X) (pbvsize %X)) (int_to_pbv (pbvsize %X) 1))))) (not (= (pbvnot (int_to_pbv (pbvsize %X) 0)) (pbvnot (int_to_pbv (pbvsize %X) 0))))) (not (= (pbvnot (int_to_pbv (pbvsize %X) 0)) (int_to_pbv (pbvsize %X) 0))) (not (= (ite (xor (= (pextract %X (- (pbvsize %X) 1) (- (pbvsize %X) 1)) (int_to_pbv 1 1)) (= (pextract (pbvnot (int_to_pbv (pbvsize %X) 0)) (- (pbvsize %X) 1) (- (pbvsize %X) 1)) (int_to_pbv 1 1))) (pbvneg _let_0) _let_0) (pbvsub (int_to_pbv (pbvsize %X) 0) %X))))))
+(check-sat)

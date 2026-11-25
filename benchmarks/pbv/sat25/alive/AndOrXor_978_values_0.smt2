@@ -1,0 +1,6 @@
+(set-logic PBV)
+(declare-fun C1 () PBitVec)
+(declare-fun %a () PBitVec)
+(declare-fun C2 () PBitVec)
+(assert (let ((_let_0 (pbvslt %a C1))) (and (pbvslt C1 C2) (not (= (and _let_0 (not (= %a C2))) _let_0)))))
+(check-sat)

@@ -1,0 +1,15 @@
+; absdiff_thm.extracted_1._1 (generalized)
+; ∀ (a b : BitVec wt) (wt : Int), 1 < wt → a <ᵤ b →
+;   (signExtend wt (ofBool (a <ᵤ b)) ^^^ (a - b)) - signExtend wt (ofBool (a <ᵤ b))
+;   = b - a
+; (sext(1)=-1; (-1 ^^^ (a-b)) - (-1) = ~(a-b)+1 = -(a-b) = b-a)
+(set-logic PBV)
+(declare-const wt Int)
+(declare-const a PBitVec)
+(assert (= (pbvsize a) wt))
+(declare-const b PBitVec)
+(assert (= (pbvsize b) wt))
+(assert (< 1 wt))
+(assert (pbvult a b))
+(assert (not (= (pbvsub (pbvxor (psign_extend (- wt 1) (ite (pbvult a b) (int_to_pbv 1 1) (int_to_pbv 1 0))) (pbvsub a b)) (psign_extend (- wt 1) (ite (pbvult a b) (int_to_pbv 1 1) (int_to_pbv 1 0)))) (pbvsub b a))))
+(check-sat)

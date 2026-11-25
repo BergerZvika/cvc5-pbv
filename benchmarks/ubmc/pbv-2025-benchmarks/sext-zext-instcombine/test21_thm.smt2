@@ -1,0 +1,8 @@
+(set-logic PBV)
+(declare-const w1 Int)
+(declare-const w2 Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) w2))
+(assert (<= w1 w2))
+(assert (= (pbvand (psign_extend w2 (pextract x (- w1 1) 0)) (pzero_extend w2 (int_to_pbv w1 -1))) (pbvand x (pzero_extend w2 (int_to_pbv w1 -1)))))
+(check-sat)

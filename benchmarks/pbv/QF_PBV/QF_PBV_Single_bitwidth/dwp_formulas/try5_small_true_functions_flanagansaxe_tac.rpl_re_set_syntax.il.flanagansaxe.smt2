@@ -1,0 +1,21 @@
+(set-info :smt-lib-version 2.6)
+(set-logic PBV)
+(set-info :source |
+Ivan Jager <aij+nospam@andrew.cmu.edu>
+
+|)
+(set-info :category "industrial")
+(declare-fun t_114 () PBitVec)
+(declare-fun t_113 () PBitVec)
+(declare-fun t_112 () PBitVec)
+(declare-fun t_111 () PBitVec)
+(declare-fun t_110 () PBitVec)
+(declare-fun t_109 () PBitVec)
+(declare-fun t_108 () PBitVec)
+(declare-fun t_107 () PBitVec)
+(declare-fun t_106 () PBitVec)
+(declare-fun t_105 () PBitVec)
+(declare-fun t_104 () PBitVec)
+(assert (= (int_to_pbv (pbvsize t_114) 1) (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (ite (= t_114 (pbvand t_113 (int_to_pbv (pbvsize t_114) 1))) (int_to_pbv (pbvsize t_114) 1) (int_to_pbv (pbvsize t_114) 0)) (ite (= t_113 (pbvand t_112 (int_to_pbv (pbvsize t_114) 1))) (int_to_pbv (pbvsize t_114) 1) (int_to_pbv (pbvsize t_114) 0))) (ite (= t_112 (pbvand t_111 (int_to_pbv (pbvsize t_114) 1))) (int_to_pbv (pbvsize t_114) 1) (int_to_pbv (pbvsize t_114) 0))) (ite (= t_111 (pbvand t_110 (int_to_pbv (pbvsize t_114) 1))) (int_to_pbv (pbvsize t_114) 1) (int_to_pbv (pbvsize t_114) 0))) (ite (= t_110 (pbvand t_109 (int_to_pbv (pbvsize t_114) 1))) (int_to_pbv (pbvsize t_114) 1) (int_to_pbv (pbvsize t_114) 0))) (ite (= t_109 (pbvand t_108 (int_to_pbv (pbvsize t_114) 1))) (int_to_pbv (pbvsize t_114) 1) (int_to_pbv (pbvsize t_114) 0))) (ite (= t_108 (pbvand t_107 (int_to_pbv (pbvsize t_114) 1))) (int_to_pbv (pbvsize t_114) 1) (int_to_pbv (pbvsize t_114) 0))) (ite (= t_107 (pbvand t_106 (int_to_pbv (pbvsize t_114) 1))) (int_to_pbv (pbvsize t_114) 1) (int_to_pbv (pbvsize t_114) 0))) (ite (= t_106 (pbvand t_105 (int_to_pbv (pbvsize t_114) 1))) (int_to_pbv (pbvsize t_114) 1) (int_to_pbv (pbvsize t_114) 0))) (ite (= t_105 (pbvand t_104 (int_to_pbv (pbvsize t_114) 1))) (int_to_pbv (pbvsize t_114) 1) (int_to_pbv (pbvsize t_114) 0))) (ite (= t_104 (int_to_pbv (pbvsize t_114) 1)) (int_to_pbv (pbvsize t_114) 1) (int_to_pbv (pbvsize t_114) 0))) (pbvand (pbvnot (int_to_pbv (pbvsize t_114) 0)) (pbvor (pbvnot (pbvand t_114 (int_to_pbv (pbvsize t_114) 1))) (int_to_pbv (pbvsize t_114) 1))))))
+(check-sat)
+(exit)

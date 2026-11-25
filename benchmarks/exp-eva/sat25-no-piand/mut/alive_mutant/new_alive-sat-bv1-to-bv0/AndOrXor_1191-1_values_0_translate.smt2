@@ -1,0 +1,5 @@
+(set-logic ALL)
+(declare-const k Int)
+(declare-const _pbv_%op0RHS Int)
+(assert (and (and (and (and (and (and (< _pbv_%op0RHS k) (not (= 0 (+ (* 0 (** 2 1)) (ite (= _pbv_%op0RHS 0) 1 0))))) (>= _pbv_%op0RHS 0)) (< _pbv_%op0RHS (** 2 k))) (>= k 0)) (< k (** 2 k))) (and (and (and (and (> k 0) (= k 1)) (= 1 (+ (- k 1) 1))) (> 1 0)) (= k k))))
+(check-sat)

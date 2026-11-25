@@ -1,0 +1,8 @@
+(set-logic PBV)
+(declare-const q Int)
+(declare-const s Int)
+(declare-fun v3 () PBitVec)
+(assert (= (pbvsize v3) q))
+(assert (> q s))
+(assert (distinct (ite (and (> s q) (> q s)) (pzero_extend (- s q) (pbvand (pzero_extend (- q s) (int_to_pbv s -1)) v3)) (ite (and (= s q) (> q s)) (pbvand (pzero_extend (- q s) (int_to_pbv s -1)) v3) (ite (and (< s q) (> q s)) (pextract (pbvand (pzero_extend (- q s) (int_to_pbv s -1)) v3) (- s 1) 0) (ite (and (> s q) (= q s)) (pzero_extend (- s q) (pbvand (int_to_pbv s -1) v3)) (ite (and (= s q) (= q s)) (pbvand (int_to_pbv s -1) v3) (ite (and (< s q) (= q s)) (pextract (pbvand (int_to_pbv s -1) v3) (- s 1) 0) (ite (and (> s q) (< q s)) (pzero_extend (- s q) (pbvand (pextract (int_to_pbv s -1) (- q 1) 0) v3)) (ite (and (= s q) (< q s)) (pbvand (pextract (int_to_pbv s -1) (- q 1) 0) v3) (pextract (pbvand (pextract (int_to_pbv s -1) (- q 1) 0) v3) (- s 1) 0))))))))) (ite (> s q) (pzero_extend (- s q) v3) (ite (= s q) v3 (pextract v3 (- s 1) 0)))))
+(check-sat)

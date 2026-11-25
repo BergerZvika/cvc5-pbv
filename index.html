@@ -49,12 +49,12 @@ main { padding: 0 16px 16px; display: grid; gap: 12px; grid-template-columns: mi
 .field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .field.grow { flex: 1 1 280px; }
 label { font-size: 12px; color: var(--muted); }
-select, input[type=text], input[type=number] {
+select, input[type=text], input[type=number], input[type=search] {
   font: inherit; color: var(--fg); background: var(--code-bg); border: 1px solid var(--border);
   border-radius: 6px; padding: 6px 8px; min-width: 0; max-width: 100%; }
 input#args { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; width: 100%; }
 input#timeout { width: 80px; }
-select#example { max-width: 200px; }
+select#example { max-width: 150px; }
 button { font: inherit; border: 1px solid var(--border); background: var(--panel); color: var(--fg);
   padding: 6px 12px; border-radius: 6px; cursor: pointer; }
 button:hover { border-color: var(--accent); }
@@ -120,6 +120,30 @@ button.comp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
 .legend .l-old { background: var(--old-bg); border-color: var(--old-bd); }
 .legend .l-new { background: var(--new-bg); border-color: var(--new-bd); }
 .legend .l-off { border-style: dashed; border-color: var(--muted); }
+/* benchmark browser */
+#bench-name { font-size: 12px; color: var(--muted); font-family: ui-monospace, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; max-width: 40%; }
+dialog#bench-dialog { width: min(860px, calc(100vw - 32px)); height: min(640px, calc(100vh - 48px)); padding: 0; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--panel); color: var(--fg); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+dialog#bench-dialog[open] { display: flex; flex-direction: column; }
+dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
+.bd-head { display: flex; gap: 8px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.bd-head h2 { font-size: 15px; margin: 0; flex: none; }
+.bd-head input { flex: 1; min-width: 0; }
+.bd-crumbs { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; padding: 6px 12px; font-size: 13px; border-bottom: 1px solid var(--border); }
+.bd-crumbs button { border: none; background: none; padding: 2px 4px; color: var(--accent); }
+.bd-crumbs button:last-child { color: var(--fg); font-weight: 600; cursor: default; }
+.bd-crumbs span { color: var(--muted); }
+.bd-list { flex: 1; overflow: auto; padding: 4px 0; }
+.bd-item { display: flex; width: 100%; align-items: center; gap: 10px; border: none; border-radius: 0; background: none; text-align: left;
+  padding: 6px 14px; font: 13px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--fg); }
+.bd-item:hover, .bd-item:focus-visible { background: color-mix(in srgb, var(--accent) 12%, transparent); outline: none; }
+.bd-item .ic { flex: none; width: 16px; height: 16px; color: var(--muted); display: inline-flex; }
+.bd-item .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bd-item .meta { flex: none; color: var(--muted); font-size: 12px; font-family: system-ui, sans-serif; }
+.bd-item .desc { color: var(--muted); font-family: system-ui, sans-serif; font-size: 12px; margin-left: 6px; }
+.bd-foot { padding: 7px 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+.bd-empty { padding: 18px 14px; color: var(--muted); }
+
 
 </style>
 <script>
@@ -162,8 +186,10 @@ button.comp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
   <section class="pane">
     <div class="pane-head">
       <h2>Input (SMT-LIB 2)</h2>
+      <span id="bench-name"></span>
       <span class="spacer"></span>
       <select id="example" aria-label="Load an example"><option value="">Examples…</option></select>
+      <button id="bench" title="Choose a benchmark of the paper">Benchmarks</button>
       <button id="load" title="Load a file from disk">Open</button>
       <input id="file" type="file" class="hidden" accept=".smt2,.smt,.txt">
       <button id="download" title="Download the input">Save</button>
@@ -213,6 +239,17 @@ button.comp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
     </div>
   </section>
 </main>
+
+<dialog id="bench-dialog" aria-labelledby="bd-title">
+  <div class="bd-head">
+    <h2 id="bd-title">Benchmarks</h2>
+    <input id="bd-search" type="search" placeholder="Search all benchmarks (e.g. alive bvudiv)" autocomplete="off" spellcheck="false">
+    <button id="bd-close" type="button" aria-label="Close">Close</button>
+  </div>
+  <nav class="bd-crumbs" id="bd-crumbs" aria-label="Folder"></nav>
+  <div class="bd-list" id="bd-list" role="list"></div>
+  <div class="bd-foot" id="bd-foot"></div>
+</dialog>
 
 <script>
 "use strict";
@@ -463,13 +500,113 @@ exSel.addEventListener("change", () => {
   exSel.value = "";
   if (!ex) return;
   editor.setValue(ex.text);
+  $("bench-name").textContent = ex.path || ""; $("bench-name").title = ex.path || "";
   if (ex.config && CONFIG_BY_ID[ex.config]) { applyConfig(ex.config, false); cfgSel.dataset.prev = ex.config; }
 });
 
 $("load").onclick = () => $("file").click();
+
+// ---------------------------------------------------------------------------
+// Benchmark browser (benchmarks/index.json lists every file, with its size)
+// ---------------------------------------------------------------------------
+const TOP_DESC = {
+  "pbv": "PBV: SAT'25 sets and QF_PBV",
+  "cav26": "CAV'26 sets in PBV",
+  "exp-eva": "EIA: integer exponentiation",
+  "ubmc": "OOPSLA'26 sets in PBV",
+};
+const ICONS = {
+  dir: '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M1.5 3.5h4.2l1.5 1.6h7.3v7.4h-13z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+  file: '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3.5 1.5h6l3 3v10h-9z M9.5 1.5v3h3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+};
+let benchTree = null, benchIndex = null, benchDir = [];
+const fmtSize = n => n < 1000 ? `${n} B` : n < 1e6 ? `${+(n / 1e3).toFixed(1)} KB` : `${+(n / 1e6).toFixed(1)} MB`;
+async function loadBenchIndex() {
+  if (benchTree) return;
+  const r = await fetch("benchmarks/index.json");
+  if (!r.ok) throw new Error(`cannot load benchmarks/index.json (HTTP ${r.status})`);
+  benchIndex = await r.json();
+  benchTree = { dirs: new Map(), files: [], count: 0 };
+  for (const [path, size] of benchIndex.files) {
+    const parts = path.split("/"); let node = benchTree; node.count++;
+    for (const d of parts.slice(0, -1)) {
+      if (!node.dirs.has(d)) node.dirs.set(d, { dirs: new Map(), files: [], count: 0 });
+      node = node.dirs.get(d); node.count++;
+    }
+    node.files.push([parts[parts.length - 1], path, size]);
+  }
+}
+function benchItem(icon, name, meta, onClick, desc) {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "bd-item"; b.setAttribute("role", "listitem");
+  const ic = document.createElement("span"); ic.className = "ic"; ic.innerHTML = ICONS[icon];
+  const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = name;
+  if (desc) { const d = document.createElement("span"); d.className = "desc"; d.textContent = desc; nm.append(d); }
+  const mt = document.createElement("span"); mt.className = "meta"; mt.textContent = meta;
+  b.append(ic, nm, mt); b.onclick = onClick;
+  return b;
+}
+function renderBench() {
+  const list = $("bd-list"), crumbs = $("bd-crumbs"), q = $("bd-search").value.trim().toLowerCase();
+  list.replaceChildren(); crumbs.replaceChildren();
+  if (q) {
+    const terms = q.split(/\s+/);
+    const hits = benchIndex.files.filter(([p]) => { const l = p.toLowerCase(); return terms.every(t => l.includes(t)); });
+    const crumb = document.createElement("button"); crumb.type = "button"; crumb.textContent = `${hits.length} matches`;
+    crumbs.append(crumb);
+    for (const [path, size] of hits.slice(0, 300)) list.append(benchItem("file", path, fmtSize(size), () => openBenchmark(path)));
+    if (hits.length > 300) { const m = document.createElement("div"); m.className = "bd-empty"; m.textContent = `Showing 300 of ${hits.length}; refine the search.`; list.append(m); }
+    if (!hits.length) { const m = document.createElement("div"); m.className = "bd-empty"; m.textContent = "No benchmark matches."; list.append(m); }
+    return;
+  }
+  let node = benchTree;
+  const path = ["benchmarks", ...benchDir];
+  path.forEach((name, i) => {
+    if (i) { const sep = document.createElement("span"); sep.textContent = "/"; crumbs.append(sep); }
+    const b = document.createElement("button"); b.type = "button"; b.textContent = name;
+    b.onclick = () => { benchDir = benchDir.slice(0, i); renderBench(); };
+    crumbs.append(b);
+  });
+  for (const d of benchDir) node = node.dirs.get(d);
+  for (const [name, sub] of [...node.dirs].sort((a, b) => a[0].localeCompare(b[0])))
+    list.append(benchItem("dir", name, `${sub.count.toLocaleString()} files`, () => { benchDir = [...benchDir, name]; renderBench(); list.scrollTop = 0; },
+      benchDir.length ? "" : TOP_DESC[name]));
+  for (const [name, p, size] of node.files.sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true })))
+    list.append(benchItem("file", name, fmtSize(size), () => openBenchmark(p)));
+}
+async function openBenchmark(path) {
+  try {
+    const r = await fetch("benchmarks/" + path.split("/").map(encodeURIComponent).join("/"));
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    editor.setValue(await r.text());
+    $("bench-name").textContent = path; $("bench-name").title = path;
+    $("bench-dialog").close();
+  } catch (err) { $("bd-foot").textContent = `Could not load ${path}: ${err.message}`; }
+}
+$("bench").onclick = async () => {
+  const dlg = $("bench-dialog");
+  dlg.showModal();
+  try {
+    if (location.protocol === "file:") throw new Error(FILE_PROTOCOL_HELP);
+    $("bd-list").replaceChildren(Object.assign(document.createElement("div"), { className: "bd-empty", textContent: "Loading…" }));
+    await loadBenchIndex();
+    $("bd-foot").textContent = `${benchIndex.files.length.toLocaleString()} benchmarks of the paper in PBV and EIA. ` +
+      `${benchIndex.omitted.length} files over ${fmtSize(benchIndex.limit)} are not included.`;
+    renderBench();
+    $("bd-search").focus();
+  } catch (err) {
+    $("bd-list").replaceChildren(Object.assign(document.createElement("div"), { className: "bd-empty", textContent: String(err.message || err) }));
+  }
+};
+$("bd-close").onclick = () => $("bench-dialog").close();
+$("bench-dialog").addEventListener("click", e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+$("bd-search").addEventListener("keydown", e => { if (e.key === "Escape") { e.preventDefault(); $("bench-dialog").close(); } });
+let benchSearchTimer = 0;
+$("bd-search").addEventListener("input", () => { clearTimeout(benchSearchTimer); benchSearchTimer = setTimeout(() => benchTree && renderBench(), 120); });
 $("file").onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
   editor.setValue(await f.text());
+  $("bench-name").textContent = f.name;
   e.target.value = "";
 };
 $("download").onclick = () => {

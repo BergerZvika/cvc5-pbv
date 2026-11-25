@@ -1,0 +1,8 @@
+(set-logic PBV)
+(declare-const x PBitVec)
+(declare-const s PBitVec)
+(declare-const t PBitVec)
+(define-fun lemma_UREM_REF8 ((x PBitVec) (s PBitVec) (t PBitVec)) Bool (pbvuge x (pbvor t (pbvor x s))))
+(assert (= t (pbvurem x s)))
+(assert (not (lemma_UREM_REF8 x s t)))
+(check-sat)

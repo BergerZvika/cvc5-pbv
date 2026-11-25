@@ -1,0 +1,8 @@
+(set-logic PBV)
+(declare-const q Int)
+(declare-fun newvar0 () PBitVec)
+(assert (= (pbvsize newvar0) q))
+(declare-fun v4 () PBitVec)
+(assert (= (pbvsize v4) q))
+(assert (distinct (not (pbvult newvar0 v4)) (pbvule v4 newvar0)))
+(check-sat)

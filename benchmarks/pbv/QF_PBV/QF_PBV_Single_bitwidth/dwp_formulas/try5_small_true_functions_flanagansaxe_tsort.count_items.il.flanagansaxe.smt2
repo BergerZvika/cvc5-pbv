@@ -1,0 +1,20 @@
+(set-info :smt-lib-version 2.6)
+(set-logic PBV)
+(set-info :source |
+Ivan Jager <aij+nospam@andrew.cmu.edu>
+
+|)
+(set-info :category "industrial")
+(declare-fun t_173 () PBitVec)
+(declare-fun t_172 () PBitVec)
+(declare-fun t_171 () PBitVec)
+(declare-fun t_170 () PBitVec)
+(declare-fun t_169 () PBitVec)
+(declare-fun t_168 () PBitVec)
+(declare-fun t_167 () PBitVec)
+(declare-fun t_166 () PBitVec)
+(declare-fun t_165 () PBitVec)
+(declare-fun t_164 () PBitVec)
+(assert (= (int_to_pbv (pbvsize t_173) 1) (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (ite (= t_173 (pbvand t_172 (int_to_pbv (pbvsize t_173) 1))) (int_to_pbv (pbvsize t_173) 1) (int_to_pbv (pbvsize t_173) 0)) (ite (= t_172 (pbvand t_171 (int_to_pbv (pbvsize t_173) 1))) (int_to_pbv (pbvsize t_173) 1) (int_to_pbv (pbvsize t_173) 0))) (ite (= t_171 (pbvand t_170 (int_to_pbv (pbvsize t_173) 1))) (int_to_pbv (pbvsize t_173) 1) (int_to_pbv (pbvsize t_173) 0))) (ite (= t_170 (pbvand t_169 (int_to_pbv (pbvsize t_173) 1))) (int_to_pbv (pbvsize t_173) 1) (int_to_pbv (pbvsize t_173) 0))) (ite (= t_169 (pbvand t_168 (int_to_pbv (pbvsize t_173) 1))) (int_to_pbv (pbvsize t_173) 1) (int_to_pbv (pbvsize t_173) 0))) (ite (= t_168 (pbvand t_167 (int_to_pbv (pbvsize t_173) 1))) (int_to_pbv (pbvsize t_173) 1) (int_to_pbv (pbvsize t_173) 0))) (ite (= t_167 (pbvand t_166 (int_to_pbv (pbvsize t_173) 1))) (int_to_pbv (pbvsize t_173) 1) (int_to_pbv (pbvsize t_173) 0))) (ite (= t_166 (pbvand t_165 (int_to_pbv (pbvsize t_173) 1))) (int_to_pbv (pbvsize t_173) 1) (int_to_pbv (pbvsize t_173) 0))) (ite (= t_165 (pbvand t_164 (int_to_pbv (pbvsize t_173) 1))) (int_to_pbv (pbvsize t_173) 1) (int_to_pbv (pbvsize t_173) 0))) (ite (= t_164 (int_to_pbv (pbvsize t_173) 1)) (int_to_pbv (pbvsize t_173) 1) (int_to_pbv (pbvsize t_173) 0))) (pbvand (pbvnot (int_to_pbv (pbvsize t_173) 0)) (pbvor (pbvnot (pbvand t_173 (int_to_pbv (pbvsize t_173) 1))) (int_to_pbv (pbvsize t_173) 1))))))
+(check-sat)
+(exit)

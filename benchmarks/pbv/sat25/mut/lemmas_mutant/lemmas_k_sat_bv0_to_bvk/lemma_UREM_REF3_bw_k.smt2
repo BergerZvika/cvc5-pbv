@@ -1,0 +1,8 @@
+(set-logic PBV)
+(declare-const x PBitVec)
+(declare-const s PBitVec)
+(declare-const t PBitVec)
+(define-fun lemma_UREM_REF3 ((x PBitVec) (s PBitVec) (t PBitVec)) Bool (=> (= s (int_to_pbv (pbvsize x) (pbvsize x))) (= t x)))
+(assert (= t (pbvurem x s)))
+(assert (not (lemma_UREM_REF3 x s t)))
+(check-sat)

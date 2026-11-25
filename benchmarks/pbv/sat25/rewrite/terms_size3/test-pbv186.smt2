@@ -1,0 +1,7 @@
+(set-logic PBV)
+(set-option :produce-models true)
+(set-option :incremental true)
+(declare-const s PBitVec)
+(assert (distinct (pbvneg (pbvor s (pbvneg s))) (pbvand s (pbvneg s))))
+(check-sat)
+(exit)

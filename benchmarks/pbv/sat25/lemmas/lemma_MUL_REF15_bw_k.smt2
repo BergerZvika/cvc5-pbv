@@ -1,0 +1,10 @@
+(set-logic PBV)
+
+(declare-const x PBitVec)
+(declare-const s PBitVec)
+(declare-const t PBitVec)
+(define-fun lemma_MUL_REF15 ((x PBitVec) (s PBitVec) (t PBitVec)) Bool (distinct t (pbvor (pbvnot (int_to_pbv (pbvsize x) 1)) (pbvxor x s))))
+(assert (= t (pbvmul x s)))
+(assert (not (lemma_MUL_REF15 x s t)))
+(assert (> (pbvsize x) 1))
+(check-sat)

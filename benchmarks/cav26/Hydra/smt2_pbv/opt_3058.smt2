@@ -1,0 +1,6 @@
+(set-logic PBV)
+(declare-const r Int)
+(declare-fun v0 () Bool)
+(assert (< 1 r))
+(assert (distinct (= (int_to_pbv r 0) (pzero_extend (- r 1) (ite v0 (int_to_pbv 1 1) (int_to_pbv 1 0)))) (not v0)))
+(check-sat)

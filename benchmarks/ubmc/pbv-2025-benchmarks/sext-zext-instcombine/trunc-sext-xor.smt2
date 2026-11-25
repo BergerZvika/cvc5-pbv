@@ -1,0 +1,13 @@
+; forall (x y : BitVec wa), wa <= wt ->
+;   truncate wa (signExtend wt x ^^^ signExtend wt y) = x ^^^ y
+; From: trunc_sext_xor_thm: xor preserved after sext and trunc
+(set-logic PBV)
+(declare-const wa Int)
+(declare-const wt Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wa))
+(declare-const y PBitVec)
+(assert (= (pbvsize y) wa))
+(assert (<= wa wt))
+(assert (not (= (pextract (pbvxor (psign_extend (- wt wa) x) (psign_extend (- wt wa) y)) (- wa 1) 0) (pbvxor x y))))
+(check-sat)

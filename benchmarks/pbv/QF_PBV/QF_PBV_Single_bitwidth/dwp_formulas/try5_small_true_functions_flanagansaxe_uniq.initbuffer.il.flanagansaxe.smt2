@@ -1,0 +1,22 @@
+(set-info :smt-lib-version 2.6)
+(set-logic PBV)
+(set-info :source |
+Ivan Jager <aij+nospam@andrew.cmu.edu>
+
+|)
+(set-info :category "industrial")
+(declare-fun t_121 () PBitVec)
+(declare-fun t_120 () PBitVec)
+(declare-fun t_119 () PBitVec)
+(declare-fun t_118 () PBitVec)
+(declare-fun t_117 () PBitVec)
+(declare-fun t_116 () PBitVec)
+(declare-fun t_115 () PBitVec)
+(declare-fun t_114 () PBitVec)
+(declare-fun t_113 () PBitVec)
+(declare-fun t_112 () PBitVec)
+(declare-fun t_111 () PBitVec)
+(declare-fun t_110 () PBitVec)
+(assert (= (int_to_pbv (pbvsize t_121) 1) (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (pbvand (ite (= t_121 (pbvand t_120 (int_to_pbv (pbvsize t_121) 1))) (int_to_pbv (pbvsize t_121) 1) (int_to_pbv (pbvsize t_121) 0)) (ite (= t_120 (pbvand t_119 (int_to_pbv (pbvsize t_121) 1))) (int_to_pbv (pbvsize t_121) 1) (int_to_pbv (pbvsize t_121) 0))) (ite (= t_119 (pbvand t_118 (int_to_pbv (pbvsize t_121) 1))) (int_to_pbv (pbvsize t_121) 1) (int_to_pbv (pbvsize t_121) 0))) (ite (= t_118 (pbvand t_117 (int_to_pbv (pbvsize t_121) 1))) (int_to_pbv (pbvsize t_121) 1) (int_to_pbv (pbvsize t_121) 0))) (ite (= t_117 (pbvand t_116 (int_to_pbv (pbvsize t_121) 1))) (int_to_pbv (pbvsize t_121) 1) (int_to_pbv (pbvsize t_121) 0))) (ite (= t_116 (pbvand t_115 (int_to_pbv (pbvsize t_121) 1))) (int_to_pbv (pbvsize t_121) 1) (int_to_pbv (pbvsize t_121) 0))) (ite (= t_115 (pbvand t_114 (int_to_pbv (pbvsize t_121) 1))) (int_to_pbv (pbvsize t_121) 1) (int_to_pbv (pbvsize t_121) 0))) (ite (= t_114 (pbvand t_113 (int_to_pbv (pbvsize t_121) 1))) (int_to_pbv (pbvsize t_121) 1) (int_to_pbv (pbvsize t_121) 0))) (ite (= t_113 (pbvand t_112 (int_to_pbv (pbvsize t_121) 1))) (int_to_pbv (pbvsize t_121) 1) (int_to_pbv (pbvsize t_121) 0))) (ite (= t_112 (pbvand t_111 (int_to_pbv (pbvsize t_121) 1))) (int_to_pbv (pbvsize t_121) 1) (int_to_pbv (pbvsize t_121) 0))) (ite (= t_111 (pbvand t_110 (int_to_pbv (pbvsize t_121) 1))) (int_to_pbv (pbvsize t_121) 1) (int_to_pbv (pbvsize t_121) 0))) (ite (= t_110 (int_to_pbv (pbvsize t_121) 1)) (int_to_pbv (pbvsize t_121) 1) (int_to_pbv (pbvsize t_121) 0))) (pbvand (pbvnot (int_to_pbv (pbvsize t_121) 0)) (pbvor (pbvnot (pbvand t_121 (int_to_pbv (pbvsize t_121) 1))) (int_to_pbv (pbvsize t_121) 1))))))
+(check-sat)
+(exit)

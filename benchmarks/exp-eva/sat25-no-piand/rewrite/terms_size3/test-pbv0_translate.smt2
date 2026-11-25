@@ -1,0 +1,8 @@
+(set-logic ALL)
+(set-option :produce-models true)
+(declare-const k Int)
+(declare-const _pbv_s Int)
+(declare-const _pbv_t Int)
+(assert (and (distinct (mod (- (** 2 k) 0) (** 2 k)) 0) (and (= k k) (> k 0))))
+(check-sat)
+(exit)

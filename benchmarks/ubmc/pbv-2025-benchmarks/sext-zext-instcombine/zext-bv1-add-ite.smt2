@@ -1,0 +1,12 @@
+; ∀ (c : BitVec 1) (x : BitVec wt) (wt : Int), 1 < wt →
+;   zeroExtend wt c + x = ite(c = 1, x + 1, x)
+; (zext(0)=0; 0+x=x; zext(1)=1; 1+x=x+1)
+(set-logic PBV)
+(declare-const wt Int)
+(declare-const c PBitVec)
+(assert (= (pbvsize c) 1))
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wt))
+(assert (< 1 wt))
+(assert (not (= (pbvadd (pzero_extend (- wt 1) c) x) (ite (= c (int_to_pbv 1 1)) (pbvadd x (int_to_pbv wt 1)) x))))
+(check-sat)

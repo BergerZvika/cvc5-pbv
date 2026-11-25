@@ -1,0 +1,10 @@
+; ∀ (c : BitVec 1) (wt : Int), 1 < wt →
+;   zeroExtend wt c + signExtend wt c = 0
+; (c=0: 0+0=0; c=1: 1+(-1)=0)
+(set-logic PBV)
+(declare-const wt Int)
+(declare-const c PBitVec)
+(assert (= (pbvsize c) 1))
+(assert (< 1 wt))
+(assert (not (= (pbvadd (pzero_extend (- wt 1) c) (psign_extend (- wt 1) c)) (int_to_pbv wt 0))))
+(check-sat)

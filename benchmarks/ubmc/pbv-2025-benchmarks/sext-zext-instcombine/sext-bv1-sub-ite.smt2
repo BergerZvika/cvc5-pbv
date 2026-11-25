@@ -1,0 +1,12 @@
+; ∀ (c : BitVec 1) (x : BitVec wt) (wt : Int), 1 < wt →
+;   x - signExtend wt c = ite(c = 1, x + 1, x)
+; (x - sext(0) = x - 0 = x; x - sext(1) = x - (-1) = x + 1)
+(set-logic PBV)
+(declare-const wt Int)
+(declare-const c PBitVec)
+(assert (= (pbvsize c) 1))
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wt))
+(assert (< 1 wt))
+(assert (not (= (pbvsub x (psign_extend (- wt 1) c)) (ite (= c (int_to_pbv 1 1)) (pbvadd x (int_to_pbv wt 1)) x))))
+(check-sat)

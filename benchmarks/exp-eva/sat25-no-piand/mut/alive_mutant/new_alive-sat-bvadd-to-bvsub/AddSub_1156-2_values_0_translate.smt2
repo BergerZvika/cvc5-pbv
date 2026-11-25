@@ -1,0 +1,5 @@
+(set-logic ALL)
+(declare-const k Int)
+(declare-const _pbv_%b Int)
+(assert (and (and (and (and (= (mod (+ (ite (= (mod (div _pbv_%b (** 2 (- k 1))) (** 2 (- (+ (- k 1) 1) (- k 1)))) 1) (+ (* (- (** 2 1) (+ 0 1)) (** 2 k)) _pbv_%b) (+ (* 0 (** 2 k)) _pbv_%b)) (ite (= (mod (div _pbv_%b (** 2 (- k 1))) (** 2 (- (+ (- k 1) 1) (- k 1)))) 1) (+ (* (- (** 2 1) (+ 0 1)) (** 2 k)) _pbv_%b) (+ (* 0 (** 2 k)) _pbv_%b))) (** 2 (+ 1 k))) (ite (= (mod (div (mod (- _pbv_%b _pbv_%b) (** 2 k)) (** 2 (- k 1))) (** 2 (- (+ (- k 1) 1) (- k 1)))) 1) (+ (* (- (** 2 1) (+ 0 1)) (** 2 k)) (mod (- _pbv_%b _pbv_%b) (** 2 k))) (+ (* 0 (** 2 k)) (mod (- _pbv_%b _pbv_%b) (** 2 k))))) (not (= (mod (- _pbv_%b _pbv_%b) (** 2 k)) (mod (* _pbv_%b (** 2 1)) (** 2 k))))) (>= _pbv_%b 0)) (< _pbv_%b (** 2 k))) (and (and (and (and (and (> k 0) (= k k)) (= 1 1)) (> 1 0)) (= (+ 1 k) (+ 1 k))) (> (+ 1 k) 0))))
+(check-sat)

@@ -1,0 +1,6 @@
+(set-logic PBV)
+(declare-const s PBitVec)
+(declare-const t PBitVec)
+(assert (distinct (pbvlshr t (pbvneg (pbvand s t))) (pbvlshr s (pbvnot (pbvand s t)))))
+(check-sat)
+(exit)

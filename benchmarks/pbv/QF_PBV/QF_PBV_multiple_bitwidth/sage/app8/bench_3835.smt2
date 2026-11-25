@@ -1,0 +1,15 @@
+(set-info :smt-lib-version 2.6)
+(set-logic PBV)
+(set-info :source |
+ Patrice Godefroid, SAGE (systematic dynamic test generation)
+ For more information: http://research.microsoft.com/en-us/um/people/pg/public_psfiles/ndss2008.pdf
+|)
+(set-info :category "industrial")
+(declare-fun k () Int)
+(assert (>= k 1))
+(declare-fun T1_23839 () PBitVec)
+(declare-fun T1_24291 () PBitVec)
+(assert (= (pbvsize T1_23839) (pbvsize T1_24291)))
+(assert (and true (not (= (pzero_extend k T1_24291) (pzero_extend k T1_23839)))))
+(check-sat)
+(exit)

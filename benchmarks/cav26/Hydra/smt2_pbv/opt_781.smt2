@@ -1,0 +1,7 @@
+(set-logic PBV)
+(declare-const r Int)
+(declare-fun symconst_2 () PBitVec)
+(assert (= (pbvsize symconst_2) r))
+(declare-fun v0 () Bool)
+(assert (distinct (pbvand symconst_2 (ite v0 (int_to_pbv r 0) symconst_2)) (ite v0 (int_to_pbv r 0) symconst_2)))
+(check-sat)

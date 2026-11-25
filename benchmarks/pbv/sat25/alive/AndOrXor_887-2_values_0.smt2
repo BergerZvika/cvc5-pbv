@@ -1,0 +1,5 @@
+(set-logic PBV)
+(declare-fun C1 () PBitVec)
+(declare-fun %a () PBitVec)
+(assert (let ((_let_0 (= %a C1))) (and _let_0 (not _let_0))))
+(check-sat)

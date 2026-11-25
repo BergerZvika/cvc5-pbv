@@ -1,0 +1,9 @@
+(set-logic PBV)
+
+(declare-const x PBitVec)
+(declare-const s PBitVec)
+(declare-const t PBitVec)
+(define-fun lemma_UDIV_REF32 ((x PBitVec) (s PBitVec) (t PBitVec)) Bool (pbvuge s (pbvlshr (pbvadd x t) t)))
+(assert (= t (pbvudiv x s)))
+(assert (not (lemma_UDIV_REF32 x s t)))
+(check-sat)

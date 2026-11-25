@@ -1,0 +1,13 @@
+; lshr_2_add_zext_basic_thm (generalized)
+; ∀ (x y : BitVec 1) (wt : Int), 1 < wt →
+;   (zeroExtend wt x + zeroExtend wt y) >>> 1 = zeroExtend wt (x &&& y)
+; (the carry bit of two 1-bit values equals their AND)
+(set-logic PBV)
+(declare-const wt Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) 1))
+(declare-const y PBitVec)
+(assert (= (pbvsize y) 1))
+(assert (< 1 wt))
+(assert (not (= (pbvlshr (pbvadd (pzero_extend (- wt 1) x) (pzero_extend (- wt 1) y)) (int_to_pbv wt 1)) (pzero_extend (- wt 1) (pbvand x y)))))
+(check-sat)

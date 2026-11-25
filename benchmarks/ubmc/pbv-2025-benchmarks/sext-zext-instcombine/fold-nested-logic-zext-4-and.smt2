@@ -1,0 +1,16 @@
+; ∀ (c1 c2 c3 c4 : BitVec 1) (w : Int), 1 < w →
+;   zeroExtend w c1 &&& zeroExtend w c2 &&& zeroExtend w c3 &&& zeroExtend w c4
+;   = zeroExtend w (c1 &&& c2 &&& c3 &&& c4)
+(set-logic PBV)
+(declare-const w Int)
+(declare-const c1 PBitVec)
+(assert (= (pbvsize c1) 1))
+(declare-const c2 PBitVec)
+(assert (= (pbvsize c2) 1))
+(declare-const c3 PBitVec)
+(assert (= (pbvsize c3) 1))
+(declare-const c4 PBitVec)
+(assert (= (pbvsize c4) 1))
+(assert (< 1 w))
+(assert (not (= (pbvand (pbvand (pbvand (pzero_extend (- w 1) c1) (pzero_extend (- w 1) c2)) (pzero_extend (- w 1) c3)) (pzero_extend (- w 1) c4)) (pzero_extend (- w 1) (pbvand (pbvand (pbvand c1 c2) c3) c4)))))
+(check-sat)

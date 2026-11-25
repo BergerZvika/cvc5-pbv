@@ -1,0 +1,7 @@
+(set-logic ALL)
+(declare-const k Int)
+(declare-const _pbv_C2 Int)
+(declare-const _pbv_C1 Int)
+(declare-const _pbv_%X Int)
+(assert (and (and (and (and (and (and (and (and (<= (- (* 2 (mod _pbv_C1 (** 2 (- k 1)))) _pbv_C1) (- (* 2 (mod _pbv_C2 (** 2 (- k 1)))) _pbv_C2)) (not (= _pbv_C2 _pbv_C1)) (not (= (or (< (- (* 2 (mod _pbv_%X (** 2 (- k 1)))) _pbv_%X) (- (* 2 (mod _pbv_C1 (** 2 (- k 1)))) _pbv_C1)) (<= (- (* 2 (mod _pbv_C2 (** 2 (- k 1)))) _pbv_C2) (- (* 2 (mod _pbv_%X (** 2 (- k 1)))) _pbv_%X))) (< (mod (+ (- _pbv_C2 1) (- (** 2 k) _pbv_C1)) (** 2 k)) (mod (+ (- (** 2 k) _pbv_C1) _pbv_%X) (** 2 k)))))) (>= _pbv_%X 0)) (< _pbv_%X (** 2 k))) (>= _pbv_C1 0)) (< _pbv_C1 (** 2 k))) (>= _pbv_C2 0)) (< _pbv_C2 (** 2 k))) (and (> k 0) (= k k))))
+(check-sat)

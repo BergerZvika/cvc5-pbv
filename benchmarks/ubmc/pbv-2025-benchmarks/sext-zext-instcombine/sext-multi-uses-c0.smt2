@@ -1,0 +1,16 @@
+; sext_multi_uses_thm.extracted_1._2 (generalized)
+; ∀ (x x2 : BitVec wt) (c : BitVec 1) (wt : Int), 1 < wt → c ≠ 1 →
+;   x2 * signExtend wt c + ((x ^^^ signExtend wt c) - signExtend wt c) = x
+; (sext(0)=0; x2*0=0; (x^^^0)-0=x; 0+x=x)
+(set-logic PBV)
+(declare-const wt Int)
+(declare-const c PBitVec)
+(assert (= (pbvsize c) 1))
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wt))
+(declare-const x2 PBitVec)
+(assert (= (pbvsize x2) wt))
+(assert (< 1 wt))
+(assert (not (= c (int_to_pbv 1 1))))
+(assert (not (= (pbvadd (pbvmul x2 (psign_extend (- wt 1) c)) (pbvsub (pbvxor x (psign_extend (- wt 1) c)) (psign_extend (- wt 1) c))) x)))
+(check-sat)

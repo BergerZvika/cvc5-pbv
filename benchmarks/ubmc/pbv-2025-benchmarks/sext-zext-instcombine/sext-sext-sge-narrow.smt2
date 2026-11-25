@@ -1,0 +1,15 @@
+; ∀ (x : BitVec wb) (x1 : BitVec wa), wa < wb → wb < wt →
+;   ofBool (signExtend wt x ≤ₛ signExtend wt x1) = ofBool (x ≤ₛ signExtend wb x1)
+; From: sext_sext_sge_op0_narrow_thm (x : BitVec 8) (x_1 : BitVec 5), concrete wa=5 wb=8 wt=32
+(set-logic PBV)
+(declare-const wa Int)
+(declare-const wb Int)
+(declare-const wt Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wb))
+(declare-const x1 PBitVec)
+(assert (= (pbvsize x1) wa))
+(assert (< wa wb))
+(assert (< wb wt))
+(assert (not (= (ite (pbvsle (psign_extend (- wt wb) x) (psign_extend (- wt wa) x1)) (int_to_pbv 1 1) (int_to_pbv 1 0)) (ite (pbvsle x (psign_extend (- wb wa) x1)) (int_to_pbv 1 1) (int_to_pbv 1 0)))))
+(check-sat)

@@ -1,0 +1,8 @@
+(set-logic PBV)
+(declare-const s Int)
+(declare-const q Int)
+(declare-fun v0 () PBitVec)
+(assert (= (pbvsize v0) q))
+(assert (< q s))
+(assert (distinct (ite (> s q) (pzero_extend (- s q) (pbvadd (int_to_pbv q 0) v0)) (ite (= s q) (pbvadd (int_to_pbv q 0) v0) (pextract (pbvadd (int_to_pbv q 0) v0) (- s 1) 0))) (ite (> s q) (pzero_extend (- s q) v0) (ite (= s q) v0 (pextract v0 (- s 1) 0)))))
+(check-sat)

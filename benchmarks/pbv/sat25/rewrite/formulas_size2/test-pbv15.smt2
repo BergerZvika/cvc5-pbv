@@ -1,0 +1,6 @@
+(set-logic PBV)
+(set-option :produce-models true)
+(set-option :incremental true)
+(assert (distinct (and false true) false))
+(check-sat)
+(exit)

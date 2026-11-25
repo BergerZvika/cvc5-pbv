@@ -1,0 +1,7 @@
+(set-logic PBV)
+(declare-const m Int)
+(declare-fun %Y () PBitVec)
+(declare-fun %X () PBitVec)
+(assert (> m (pbvsize %X)))
+(assert (let ((_let_0 (pzero_extend (- m (pbvsize %X)) %Y))) (let ((_let_1 (pzero_extend (- m (pbvsize %X)) %X))) (let ((_let_2 (pbvudiv _let_1 _let_0))) (and (= (pbvmul _let_2 _let_0) _let_1) (not (= _let_0 (int_to_pbv m 1))) (not (= _let_2 (pzero_extend (- m (pbvsize %X)) (pbvudiv %X %Y)))))))))
+(check-sat)

@@ -1,0 +1,16 @@
+; ∀ (a b c : BitVec w) (k : Int), w < k →
+;   zeroExtend k (ofBool (a <ₛ b)) ^^^ zeroExtend k (ofBool (b <ₛ c))
+;   = zeroExtend k (ofBool (a <ₛ b) ^^^ ofBool (b <ₛ c))
+; From: fold_xor_zext_icmp_thm (x x_1 x_2 : BitVec 64), concrete k=8
+(set-logic PBV)
+(declare-const w Int)
+(declare-const k Int)
+(declare-const a PBitVec)
+(assert (= (pbvsize a) w))
+(declare-const b PBitVec)
+(assert (= (pbvsize b) w))
+(declare-const c PBitVec)
+(assert (= (pbvsize c) w))
+(assert (< w k))
+(assert (not (= (pbvxor (pzero_extend (- k 1) (ite (pbvslt a b) (int_to_pbv 1 1) (int_to_pbv 1 0))) (pzero_extend (- k 1) (ite (pbvslt b c) (int_to_pbv 1 1) (int_to_pbv 1 0)))) (pzero_extend (- k 1) (pbvxor (ite (pbvslt a b) (int_to_pbv 1 1) (int_to_pbv 1 0)) (ite (pbvslt b c) (int_to_pbv 1 1) (int_to_pbv 1 0)))))))
+(check-sat)

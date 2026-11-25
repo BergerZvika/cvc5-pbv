@@ -1,0 +1,15 @@
+; ∀ (x : BitVec wa) (x1 : BitVec wb), wa < wb → wb < wt →
+;   ofBool (signExtend wt x <ₛ signExtend wt x1) = ofBool (signExtend wb x <ₛ x1)
+; From: different_size_sext_sext_sgt_thm (x : BitVec 4) (x_1 : BitVec 7), concrete widths 4 < 7 < 25
+(set-logic PBV)
+(declare-const wa Int)
+(declare-const wb Int)
+(declare-const wt Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wa))
+(declare-const x1 PBitVec)
+(assert (= (pbvsize x1) wb))
+(assert (< wa wb))
+(assert (< wb wt))
+(assert (not (= (ite (pbvslt (psign_extend (- wt wa) x) (psign_extend (- wt wb) x1)) (int_to_pbv 1 1) (int_to_pbv 1 0)) (ite (pbvslt (psign_extend (- wb wa) x) x1) (int_to_pbv 1 1) (int_to_pbv 1 0)))))
+(check-sat)

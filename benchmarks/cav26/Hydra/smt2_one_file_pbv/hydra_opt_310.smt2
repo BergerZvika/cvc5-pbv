@@ -1,0 +1,8 @@
+(set-logic PBV)
+(declare-const q Int)
+(declare-const r Int)
+(declare-fun newvar0 () PBitVec)
+(assert (= (pbvsize newvar0) q))
+(assert (< q r))
+(assert (distinct (ite (> r q) (pbvsub (int_to_pbv r 0) (pzero_extend (- r q) newvar0)) (ite (= r q) (pbvsub (int_to_pbv r 0) newvar0) (pbvsub (int_to_pbv r 0) (pextract newvar0 (- r 1) 0)))) (ite (and (> r q) (> q q)) (psign_extend (- r q) (pzero_extend (- q q) newvar0)) (ite (and (= r q) (> q q)) (pzero_extend (- q q) newvar0) (ite (and (< r q) (> q q)) (pextract (pzero_extend (- q q) newvar0) (- r 1) 0) (ite (and (> r q) (= q q)) (psign_extend (- r q) newvar0) (ite (and (= r q) (= q q)) newvar0 (ite (and (< r q) (= q q)) (pextract newvar0 (- r 1) 0) (ite (and (> r q) (< q q)) (psign_extend (- r q) (pextract newvar0 (- q 1) 0)) (ite (and (= r q) (< q q)) (pextract newvar0 (- q 1) 0) (pextract (pextract newvar0 (- q 1) 0) (- r 1) 0)))))))))))
+(check-sat)

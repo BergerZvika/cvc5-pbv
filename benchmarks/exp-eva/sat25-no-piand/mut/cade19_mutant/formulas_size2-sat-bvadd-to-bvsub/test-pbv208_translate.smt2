@@ -1,0 +1,7 @@
+(set-logic ALL)
+(declare-const k Int)
+(declare-const _pbv_s Int)
+(declare-const _pbv_t Int)
+(assert (and (and (and (and (and (distinct (<= 0 (- (* 2 (mod (mod (- _pbv_t _pbv_s) (** 2 k)) (** 2 (- k 1)))) (mod (- _pbv_t _pbv_s) (** 2 k)))) (<= 0 (- (* 2 (mod (mod (+ _pbv_t _pbv_s) (** 2 k)) (** 2 (- k 1)))) (mod (+ _pbv_t _pbv_s) (** 2 k))))) (>= _pbv_s 0)) (< _pbv_s (** 2 k))) (>= _pbv_t 0)) (< _pbv_t (** 2 k))) (and (> k 0) (= k k))))
+(check-sat)
+(exit)

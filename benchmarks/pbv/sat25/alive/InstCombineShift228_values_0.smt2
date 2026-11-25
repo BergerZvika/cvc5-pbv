@@ -1,0 +1,8 @@
+(set-logic PBV)
+(declare-const m Int)
+(declare-fun C2 () PBitVec)
+(declare-fun C1 () PBitVec)
+(declare-fun %X () PBitVec)
+(assert (> m (pbvsize C1)))
+(assert (and (pbvult C1 (int_to_pbv (pbvsize C1) (pbvsize C1))) (pbvult C2 (int_to_pbv (pbvsize C1) (pbvsize C1))) (pbvsge (pzero_extend (- m (pbvsize C1)) (pbvadd C1 C2)) (int_to_pbv m (pbvsize C1))) (not (= (pbvshl (pbvshl %X C1) C2) (int_to_pbv (pbvsize C1) 0)))))
+(check-sat)

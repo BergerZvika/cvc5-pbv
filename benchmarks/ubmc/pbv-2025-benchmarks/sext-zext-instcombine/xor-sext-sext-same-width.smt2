@@ -1,0 +1,12 @@
+; ∀ (x y : BitVec wa) (wt : Int), wa < wt →
+;   signExtend wt x ^^^ signExtend wt y = signExtend wt (x ^^^ y)
+(set-logic PBV)
+(declare-const wa Int)
+(declare-const wt Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wa))
+(declare-const y PBitVec)
+(assert (= (pbvsize y) wa))
+(assert (< wa wt))
+(assert (not (= (pbvxor (psign_extend (- wt wa) x) (psign_extend (- wt wa) y)) (psign_extend (- wt wa) (pbvxor x y)))))
+(check-sat)

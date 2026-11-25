@@ -1,0 +1,15 @@
+; ∀ (x : BitVec wb) (y : BitVec wa), wa < wb → wb < wt →
+;   signExtend wt x ^^^ signExtend wt y = signExtend wt (x ^^^ signExtend wb y)
+; Analogous to and_sext_sext and or_sext_sext
+(set-logic PBV)
+(declare-const wa Int)
+(declare-const wb Int)
+(declare-const wt Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wb))
+(declare-const y PBitVec)
+(assert (= (pbvsize y) wa))
+(assert (< wa wb))
+(assert (< wb wt))
+(assert (not (= (pbvxor (psign_extend (- wt wb) x) (psign_extend (- wt wa) y)) (psign_extend (- wt wb) (pbvxor x (psign_extend (- wb wa) y))))))
+(check-sat)

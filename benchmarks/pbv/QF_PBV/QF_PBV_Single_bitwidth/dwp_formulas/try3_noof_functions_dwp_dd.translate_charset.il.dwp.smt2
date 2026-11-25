@@ -1,0 +1,21 @@
+(set-info :smt-lib-version 2.6)
+(set-logic PBV)
+(set-info :source |
+Ivan Jager <aij+nospam@andrew.cmu.edu>
+
+|)
+(set-info :category "industrial")
+(declare-fun t_261 () PBitVec)
+(declare-fun t_260 () PBitVec)
+(declare-fun t_259 () PBitVec)
+(declare-fun t_258 () PBitVec)
+(declare-fun t_257 () PBitVec)
+(declare-fun t_256 () PBitVec)
+(declare-fun t_255 () PBitVec)
+(declare-fun t_254 () PBitVec)
+(declare-fun t_253 () PBitVec)
+(declare-fun t_252 () PBitVec)
+(declare-fun t_251 () PBitVec)
+(assert (= (int_to_pbv (pbvsize t_261) 1) (pbvand (pbvand (ite (= t_251 (int_to_pbv (pbvsize t_261) 1)) (int_to_pbv (pbvsize t_261) 1) (int_to_pbv (pbvsize t_261) 0)) (pbvand (ite (= t_252 (int_to_pbv (pbvsize t_261) 1)) (int_to_pbv (pbvsize t_261) 1) (int_to_pbv (pbvsize t_261) 0)) (pbvand (ite (= t_253 (int_to_pbv (pbvsize t_261) 1)) (int_to_pbv (pbvsize t_261) 1) (int_to_pbv (pbvsize t_261) 0)) (pbvand (ite (= t_254 (int_to_pbv (pbvsize t_261) 0)) (int_to_pbv (pbvsize t_261) 1) (int_to_pbv (pbvsize t_261) 0)) (pbvand (ite (= t_255 (int_to_pbv (pbvsize t_261) 0)) (int_to_pbv (pbvsize t_261) 1) (int_to_pbv (pbvsize t_261) 0)) (pbvand (ite (= t_256 t_254) (int_to_pbv (pbvsize t_261) 1) (int_to_pbv (pbvsize t_261) 0)) (pbvand (ite (= t_257 (pbvnot (int_to_pbv (pbvsize t_261) 0))) (int_to_pbv (pbvsize t_261) 1) (int_to_pbv (pbvsize t_261) 0)) (pbvand (ite (= t_258 (pbvor t_255 (pbvand t_257 t_256))) (int_to_pbv (pbvsize t_261) 1) (int_to_pbv (pbvsize t_261) 0)) (pbvand (ite (= t_259 t_253) (int_to_pbv (pbvsize t_261) 1) (int_to_pbv (pbvsize t_261) 0)) (pbvand (ite (= t_260 t_252) (int_to_pbv (pbvsize t_261) 1) (int_to_pbv (pbvsize t_261) 0)) (ite (= t_261 t_251) (int_to_pbv (pbvsize t_261) 1) (int_to_pbv (pbvsize t_261) 0)))))))))))) (pbvand (pbvnot (pbvor (pbvnot t_251) (pbvand t_261 (pbvor (pbvnot t_252) (pbvand t_260 (pbvor (pbvnot t_253) (pbvand t_259 (pbvand t_257 (pbvnot t_254))))))))) (pbvand (pbvand t_261 (pbvand t_260 (pbvand t_259 t_258))) (int_to_pbv (pbvsize t_261) 1))))))
+(check-sat)
+(exit)

@@ -1,0 +1,11 @@
+; ∀ (x : BitVec wa) (wt : Int), wa < wt →
+;   signExtend wt (bvnot x) = bvnot (signExtend wt x)
+; (flipping bits then extending = extending then flipping all bits)
+(set-logic PBV)
+(declare-const wa Int)
+(declare-const wt Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wa))
+(assert (< wa wt))
+(assert (not (= (psign_extend (- wt wa) (pbvnot x)) (pbvnot (psign_extend (- wt wa) x)))))
+(check-sat)

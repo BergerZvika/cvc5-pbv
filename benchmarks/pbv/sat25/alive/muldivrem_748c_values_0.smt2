@@ -1,0 +1,6 @@
+(set-logic PBV)
+(declare-fun C1 () PBitVec)
+(declare-fun C2 () PBitVec)
+(declare-fun %X () PBitVec)
+(assert (and (= (pextract (pbvmul (pzero_extend (pbvsize C1) %X) (pzero_extend (pbvsize C1) C1)) (- (* 2 (pbvsize C1)) 1) (pbvsize C1)) (int_to_pbv (pbvsize C1) 0)) (= (pbvurem C2 C1) (int_to_pbv (pbvsize C1) 0)) (not (= C2 (int_to_pbv (pbvsize C1) 0))) (not (= (pbvudiv (pbvmul %X C1) C2) (pbvudiv %X (pbvudiv C2 C1))))))
+(check-sat)

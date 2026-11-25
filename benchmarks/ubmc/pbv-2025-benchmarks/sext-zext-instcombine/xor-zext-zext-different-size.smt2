@@ -1,0 +1,15 @@
+; ∀ (x : BitVec wb) (y : BitVec wa), wa < wb → wb < wt →
+;   zeroExtend wt x ^^^ zeroExtend wt y = zeroExtend wt (x ^^^ zeroExtend wb y)
+; Analogous to and_zext_zext and or_zext_zext
+(set-logic PBV)
+(declare-const wa Int)
+(declare-const wb Int)
+(declare-const wt Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wb))
+(declare-const y PBitVec)
+(assert (= (pbvsize y) wa))
+(assert (< wa wb))
+(assert (< wb wt))
+(assert (not (= (pbvxor (pzero_extend (- wt wb) x) (pzero_extend (- wt wa) y)) (pzero_extend (- wt wb) (pbvxor x (pzero_extend (- wb wa) y))))))
+(check-sat)

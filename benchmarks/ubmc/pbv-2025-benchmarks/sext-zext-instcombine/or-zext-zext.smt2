@@ -1,0 +1,15 @@
+; ∀ (x : BitVec wb) (x1 : BitVec wa), wa < wb → wb < wt →
+;   zeroExtend wt x1 ||| zeroExtend wt x = zeroExtend wt (x ||| zeroExtend wb x1)
+; From: or_zext_zext_thm (x : BitVec 8) (x_1 : BitVec 4), concrete wa=4 wb=8 wt=16
+(set-logic PBV)
+(declare-const wa Int)
+(declare-const wb Int)
+(declare-const wt Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wb))
+(declare-const x1 PBitVec)
+(assert (= (pbvsize x1) wa))
+(assert (< wa wb))
+(assert (< wb wt))
+(assert (not (= (pbvor (pzero_extend (- wt wa) x1) (pzero_extend (- wt wb) x)) (pzero_extend (- wt wb) (pbvor x (pzero_extend (- wb wa) x1))))))
+(check-sat)

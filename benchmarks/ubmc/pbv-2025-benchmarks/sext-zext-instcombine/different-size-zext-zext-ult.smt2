@@ -1,0 +1,15 @@
+; ∀ (x : BitVec wb) (x1 : BitVec wa), wa < wb → wb < wt →
+;   ofBool (zeroExtend wt x1 <ᵤ zeroExtend wt x) = ofBool (zeroExtend wb x1 <ᵤ x)
+; From: different_size_zext_zext_ult_thm (x : BitVec 7) (x_1 : BitVec 4), concrete widths 4 < 7 < 25
+(set-logic PBV)
+(declare-const wa Int)
+(declare-const wb Int)
+(declare-const wt Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wb))
+(declare-const x1 PBitVec)
+(assert (= (pbvsize x1) wa))
+(assert (< wa wb))
+(assert (< wb wt))
+(assert (not (= (ite (pbvult (pzero_extend (- wt wa) x1) (pzero_extend (- wt wb) x)) (int_to_pbv 1 1) (int_to_pbv 1 0)) (ite (pbvult (pzero_extend (- wb wa) x1) x) (int_to_pbv 1 1) (int_to_pbv 1 0)))))
+(check-sat)

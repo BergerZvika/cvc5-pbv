@@ -1,0 +1,8 @@
+(set-logic PBV)
+(declare-fun C4 () PBitVec)
+(declare-fun C2 () PBitVec)
+(declare-fun C3 () PBitVec)
+(declare-fun C1 () PBitVec)
+(declare-fun %a () PBitVec)
+(assert (and (= (pbvand (pbvand C1 C3) (pbvxor C2 C4)) (int_to_pbv (pbvsize C4) 0)) (= (pbvand C1 C2) C2) (= (pbvand C3 C4) C4) (not (= (and (= (pbvand %a C1) C2) (= (pbvand %a C3) C4)) (= (pbvand %a (pbvor C1 C3)) (pbvor C2 C4))))))
+(check-sat)

@@ -1,0 +1,15 @@
+; ∀ (x : BitVec wa) (x1 : BitVec wb), wa < wb → wb < wt →
+;   signExtend wt x1 ||| signExtend wt x = signExtend wt (x1 ||| signExtend wb x)
+; From: or_sext_sext_thm (x : BitVec 4) (x_1 : BitVec 8), concrete wa=4 wb=8 wt=16
+(set-logic PBV)
+(declare-const wa Int)
+(declare-const wb Int)
+(declare-const wt Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wa))
+(declare-const x1 PBitVec)
+(assert (= (pbvsize x1) wb))
+(assert (< wa wb))
+(assert (< wb wt))
+(assert (not (= (pbvor (psign_extend (- wt wb) x1) (psign_extend (- wt wa) x)) (psign_extend (- wt wb) (pbvor x1 (psign_extend (- wb wa) x))))))
+(check-sat)

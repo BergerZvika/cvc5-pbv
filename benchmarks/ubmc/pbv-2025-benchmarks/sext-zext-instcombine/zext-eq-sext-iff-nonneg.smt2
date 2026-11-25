@@ -1,0 +1,12 @@
+; ∀ (x : BitVec wa) (wt : Int), wa < wt →
+;   ofBool (zeroExtend wt x == signExtend wt x) = bvnot (pextract (- wa 1) (- wa 1) x)
+; (zext = sext iff sign bit of x is 0, i.e., x is nonneg)
+(set-logic PBV)
+(declare-const wa Int)
+(declare-const wt Int)
+(declare-const x PBitVec)
+(assert (= (pbvsize x) wa))
+(assert (< wa wt))
+(assert (< 1 wa))
+(assert (not (= (ite (= (pzero_extend (- wt wa) x) (psign_extend (- wt wa) x)) (int_to_pbv 1 1) (int_to_pbv 1 0)) (pbvnot (pextract x (- wa 1) (- wa 1))))))
+(check-sat)

@@ -1,0 +1,7 @@
+(set-logic PBV)
+(declare-fun C2 () PBitVec)
+(declare-fun C1 () PBitVec)
+(declare-fun %x () PBitVec)
+(assert (> (pbvsize %x) (pbvsize C2)))
+(assert (not (= (pbvor (pextract (pbvand %x C1) (- (pbvsize C2) 1) 0) C2) (pbvand (pextract %x (- (pbvsize C2) 1) 0) (pbvand (pextract C1 (- (pbvsize C2) 1) 0) C2)))))
+(check-sat)

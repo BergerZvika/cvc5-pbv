@@ -1,0 +1,8 @@
+(set-logic PBV)
+(declare-const t Int)
+(declare-fun newvar0 () PBitVec)
+(assert (= (pbvsize newvar0) t))
+(declare-fun symconst_3 () PBitVec)
+(assert (= (pbvsize symconst_3) t))
+(assert (distinct (ite (distinct (int_to_pbv t 0) (pbvand (int_to_pbv t 1) newvar0)) symconst_3 (int_to_pbv t 0)) (pbvmul symconst_3 (pbvand (int_to_pbv t 1) newvar0))))
+(check-sat)

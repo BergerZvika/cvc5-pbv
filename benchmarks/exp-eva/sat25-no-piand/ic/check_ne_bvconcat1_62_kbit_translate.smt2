@@ -1,0 +1,10 @@
+(set-logic ALL)
+(set-option :produce-models true)
+(declare-const m Int)
+(declare-const k Int)
+(declare-const _pbv_s Int)
+(declare-const _pbv_tx Int)
+(declare-const _pbv_ts Int)
+
+(assert (and (and (and (and (and (and (and (not (and (exists ((_pbv_x__param_0 Int)) (and (and (>= _pbv_x__param_0 0) (< _pbv_x__param_0 (** 2 m))) (distinct (+ (* _pbv_s (** 2 m)) _pbv_x__param_0) (+ (* _pbv_ts (** 2 m)) _pbv_tx)))) true)) (>= _pbv_tx 0)) (< _pbv_tx (** 2 m))) (>= _pbv_ts 0)) (< _pbv_ts (** 2 k))) (>= _pbv_s 0)) (< _pbv_s (** 2 k))) (and (and (and (> m 0) (> k 0)) (= (+ k m) (+ k m))) (> (+ k m) 0))))
+(check-sat)
