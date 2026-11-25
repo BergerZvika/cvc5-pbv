@@ -93,6 +93,10 @@ button:disabled { opacity: .55; cursor: default; }
 /* architecture figure */
 .arch { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; }
 .cfg-field select { width: 150px; }
+#arch-toggle { padding: 6px 9px; display: inline-flex; align-items: center; }
+#arch-toggle svg { transition: transform .15s; }
+.controls.collapsed #arch-toggle svg { transform: rotate(180deg); }
+.controls.collapsed .arch { display: none; }
 .arch-scroll { overflow-x: auto; padding-bottom: 2px; min-width: 0; }
 .arch-fig { display: inline-flex; flex-direction: column; align-items: center; min-width: 100%; }
 .cvc5-box { display: flex; align-items: center; gap: 0; border: 1.5px solid var(--fg); border-radius: 8px; padding: 8px 10px; }
@@ -183,9 +187,12 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <input id="timeout" type="number" min="1" value="60">
     </div>
     <button id="run" class="primary" title="Run (Ctrl+Enter)">Run</button>
+    <button id="arch-toggle" type="button" aria-expanded="true" aria-controls="arch" title="Hide the architecture">
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3.5 10l4.5-4.5 4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
   </div>
 
-  <div class="arch">
+  <div class="arch" id="arch">
     <div class="field cfg-field">
       <label for="config">Configuration</label>
       <select id="config"></select>
@@ -635,6 +642,24 @@ $("theme").onclick = () => {
   syncThemeButton();
 };
 syncThemeButton();
+
+// collapse the architecture figure: one line with configuration, arguments, timeout and run
+function setArchCollapsed(collapsed) {
+  const controls = document.querySelector(".controls"), cfg = document.querySelector(".cfg-field");
+  controls.classList.toggle("collapsed", collapsed);
+  if (collapsed) document.querySelector(".bar").prepend(cfg);
+  else $("arch").prepend(cfg);
+  const t = $("arch-toggle");
+  t.setAttribute("aria-expanded", String(!collapsed));
+  t.title = collapsed ? "Show the architecture" : "Hide the architecture";
+  t.setAttribute("aria-label", t.title);
+}
+$("arch-toggle").onclick = () => {
+  const collapsed = !document.querySelector(".controls").classList.contains("collapsed");
+  setArchCollapsed(collapsed);
+  try { localStorage.setItem("archCollapsed", collapsed ? "1" : "0"); } catch (e) {}
+};
+try { if (localStorage.getItem("archCollapsed") === "1") setArchCollapsed(true); else setArchCollapsed(false); } catch (e) { setArchCollapsed(false); }
 
 function flash(btn, text) { const t = btn.textContent; btn.textContent = text; setTimeout(() => (btn.textContent = t), 1200); }
 
