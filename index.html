@@ -121,6 +121,8 @@ button.comp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2p
 .legend .l-old { background: var(--old-bg); border-color: var(--old-bd); }
 .legend .l-new { background: var(--new-bg); border-color: var(--new-bd); }
 .legend .l-off { border-style: dashed; border-color: var(--muted); }
+.legend a { color: var(--accent); text-decoration: none; }
+.legend a:hover { text-decoration: underline; }
 /* benchmark browser */
 #bench-name { font-size: 12px; color: var(--muted); font-family: ui-monospace, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; max-width: 40%; }
 dialog#bench-dialog { width: min(860px, calc(100vw - 32px)); height: min(640px, calc(100vh - 48px)); padding: 0; border: 1px solid var(--border);
@@ -209,7 +211,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       </div>
     </div>
     <div class="legend">
-      <span><i class="l-old"></i>generalized component of [SAT'25]</span>
+      <span><i class="l-old"></i>generalized component of <a href="https://drops.dagstuhl.de/storage/00lipics/lipics-vol341-sat2025/html/LIPIcs.SAT.2025.4/LIPIcs.SAT.2025.4.html" target="_blank" rel="noopener">[SAT'25]</a></span>
       <span><i class="l-new"></i>new in this paper</span>
       <span><i class="l-off"></i>off in the current arguments</span>
     </div>
