@@ -434,7 +434,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
 // Solvers (WebAssembly builds) and the configurations of the paper
 // ---------------------------------------------------------------------------
 const SOLVERS = {
-  cvc5:    { kind: "emscripten", glue: "wasm/cvc5.js", wasm: "wasm/cvc5.wasm", file: "/input.smt2",   mode: "commonlisp", factory: "createCvc5", size: 19371418 },
+  cvc5:    { kind: "emscripten", glue: "wasm/cvc5.js", wasm: "wasm/cvc5.wasm", file: "/input.smt2",   mode: "commonlisp", factory: "createCvc5", size: 22189017 },
 };
 
 // always passed to cvc5 (every configuration of the paper uses them; Solve* in the figure)
@@ -1013,7 +1013,16 @@ self.onmessage = (e) => {
     M.FS.writeFile(file, input);
     let code;
     try { code = M.callMain(argv); }
-    catch (err) { if (err && err.name === "ExitStatus") code = err.status; else { finished = true; done(-1, String(err && err.stack || err)); return; } }
+    catch (err) {
+      if (err && err.name === "ExitStatus") code = err.status;
+      else {
+        // a C++ exception that cvc5 did not catch arrives as an opaque object
+        const cpp = err && (err.excPtr !== undefined || (typeof WebAssembly.Exception === "function" && err instanceof WebAssembly.Exception));
+        finished = true;
+        done(-1, cpp ? "the solver stopped on an internal exception (uncaught C++ exception)" : String(err && err.stack || err));
+        return;
+      }
+    }
     if (!finished) { finished = true; done(code); }
   }, (err) => { if (!finished) { finished = true; done(-1, String(err)); } });
 };`;
@@ -1113,7 +1122,8 @@ async function run() {
       for (const [stream, text] of m.chunks) {
         if (stream === 1) running.stdout += text;
         if (stream === 2 && /warning: unsupported syscall/.test(text)) continue;
-        log(text, stream === 2 ? "err" : null);
+        // messages name the solver's internal copy of the input: show the real path instead
+        log(text.split(s.file).join(inputPath), stream === 2 ? "err" : null);
       }
     } else if (m.type === "done") {
       finish(classify(running.stdout, m.code, m.error), m.error ? `${m.error}\n` : (m.code ? `exit code ${m.code}\n` : ""));
