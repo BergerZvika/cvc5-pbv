@@ -7,8 +7,6 @@
 <meta name="description" content="Run the solvers of the Parametric Bit-Vectors in cvc5 artifact in your browser (WebAssembly).">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/commonlisp/commonlisp.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
 <style>
 :root {
@@ -93,13 +91,34 @@ button:disabled { opacity: .55; cursor: default; }
 .CodeMirror-linenumber { color: var(--muted); }
 .CodeMirror-cursor { border-left-color: var(--fg); }
 .CodeMirror-selected, .CodeMirror-focused .CodeMirror-selected { background: color-mix(in srgb, var(--accent) 25%, transparent); }
-.cm-s-default .cm-keyword { color: var(--accent); }
-.cm-s-default .cm-variable, .cm-s-default .cm-property { color: var(--fg); }
-.cm-s-default .cm-number { color: var(--ok); }
-.cm-s-default .cm-string { color: var(--warn); }
-.cm-s-default .cm-comment { color: var(--muted); }
-.cm-s-default .cm-bracket, .cm-s-default .cm-def { color: var(--fg); }
-.CodeMirror-matchingbracket { color: var(--accent) !important; text-decoration: underline; }
+/* input colours as in the cvc5 online app (Monaco editor, themes "vs" and "vs-dark") */
+.cm-s-vs.CodeMirror { background: #fffffe; color: #000000; }
+.cm-s-vs .CodeMirror-gutters { background: #fffffe; border-right: 0; }
+.cm-s-vs .CodeMirror-linenumber { color: #237893; }
+.cm-s-vs .CodeMirror-cursor { border-left-color: #000000; }
+.cm-s-vs .CodeMirror-selected, .cm-s-vs.CodeMirror-focused .CodeMirror-selected { background: #add6ff; }
+.cm-s-vs .cm-keyword { color: #0000ff; }
+.cm-s-vs .cm-atom { color: #dd0000; }
+.cm-s-vs .cm-number { color: #098658; }
+.cm-s-vs .cm-string { color: #a31515; }
+.cm-s-vs .cm-string-2 { color: #800000; }
+.cm-s-vs .cm-comment { color: #008000; }
+.cm-s-vs .cm-variable, .cm-s-vs .cm-meta, .cm-s-vs .cm-bracket { color: #000000; }
+.cm-s-vs .CodeMirror-matchingbracket { color: inherit !important; background: #0064001a; outline: 1px solid #b9b9b9; }
+.cm-s-vs-dark.CodeMirror { background: #1e1e1e; color: #d4d4d4; }
+.cm-s-vs-dark .CodeMirror-gutters { background: #1e1e1e; border-right: 0; }
+.cm-s-vs-dark .CodeMirror-linenumber { color: #858585; }
+.cm-s-vs-dark .CodeMirror-cursor { border-left-color: #aeafad; }
+.cm-s-vs-dark .CodeMirror-selected, .cm-s-vs-dark.CodeMirror-focused .CodeMirror-selected { background: #264f78; }
+.cm-s-vs-dark .cm-keyword { color: #569cd6; }
+.cm-s-vs-dark .cm-atom { color: #569cd6; }
+.cm-s-vs-dark .cm-number { color: #b5cea8; }
+.cm-s-vs-dark .cm-string { color: #ce9178; }
+.cm-s-vs-dark .cm-string-2 { color: #b46695; }
+.cm-s-vs-dark .cm-comment { color: #6a9955; }
+.cm-s-vs-dark .cm-variable, .cm-s-vs-dark .cm-meta { color: #d4d4d4; }
+.cm-s-vs-dark .cm-bracket { color: #dcdcdc; }
+.cm-s-vs-dark .CodeMirror-matchingbracket { color: inherit !important; background: #0064001a; outline: 1px solid #888888; }
 .out-body { position: relative; }
 #output { margin: 0; padding: 10px; height: 62vh; min-height: 300px; overflow: auto; white-space: pre-wrap; word-break: break-word;
   font: var(--out-fs, 13px)/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); border-radius: 0 0 8px 8px; }
@@ -484,7 +503,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
 // Solvers (WebAssembly builds) and the configurations of the paper
 // ---------------------------------------------------------------------------
 const SOLVERS = {
-  cvc5:    { kind: "emscripten", glue: "wasm/cvc5.js", wasm: "wasm/cvc5.wasm", file: "/input.smt2",   mode: "commonlisp", factory: "createCvc5", size: 22189017 },
+  cvc5:    { kind: "emscripten", glue: "wasm/cvc5.js", wasm: "wasm/cvc5.wasm", file: "/input.smt2",   mode: "smt2", factory: "createCvc5", size: 22189017 },
 };
 
 // always passed to cvc5 (every configuration of the paper uses them; Solve* in the figure)
@@ -519,8 +538,54 @@ const $ = id => document.getElementById(id);
 const cfgSel = $("config"), argsIn = $("args"), runBtn = $("run"), out = $("output");
 const statusEl = $("status"), resultEl = $("result");
 
+// SMT-LIB highlighting as in the cvc5 online app: the tokenizer of its Monaco editor (Monaco 0.32
+// "clojure" language with cvc5's keyword list), ported to CodeMirror.
+const SMT_KEYWORDS = new Set([".","catch","def","do","if","monitor-enter","monitor-exit","new","quote","recur","set!","throw","try","var","*","*'","*1","*2","*3","*agent*","*allow-unresolved-vars*","*assert*","*clojure-version*","*command-line-args*","*compile-files*","*compile-path*","*compiler-options*","*data-readers*","*default-data-reader-fn*","*e","*err*","*file*","*flush-on-newline*","*fn-loader*","*in*","*math-context*","*ns*","*out*","*print-dup*","*print-length*","*print-level*","*print-meta*","*print-namespace-maps*","*print-readably*","*read-eval*","*reader-resolver*","*source-path*","*suppress-read*","*unchecked-math*","*use-context-classloader*","*verbose-defrecords*","*warn-on-reflection*","+","+'","-","-'","->","->>","->arraychunk","->eduction","->vec","->vecnode","->vecseq","-cache-protocol-fn","-reset-methods","..","/","<","<=","=","==",">",">=","empty-node","inst","stacktraceelement->vec","throwable->map","accessor","aclone","add-classpath","add-watch","agent","agent-error","agent-errors","aget","alength","alias","all-ns","alter","alter-meta!","alter-var-root","amap","ancestors","and","any?","apply","areduce","array-map","as->","aset","aset-boolean","aset-byte","aset-char","aset-double","aset-float","aset-int","aset-long","aset-short","assert","assoc","assoc!","assoc-in","associative?","atom","await","await-for","await1","bases","bean","bigdec","bigint","biginteger","binding","bit-and","bit-and-not","bit-clear","bit-flip","bit-not","bit-or","bit-set","bit-shift-left","bit-shift-right","bit-test","bit-xor","boolean","boolean-array","boolean?","booleans","bound-fn","bound-fn*","bound?","bounded-count","butlast","byte","byte-array","bytes","bytes?","case","cast","cat","char","char-array","char-escape-string","char-name-string","char?","chars","chunk","chunk-append","chunk-buffer","chunk-cons","chunk-first","chunk-next","chunk-rest","chunked-seq?","class","class?","clear-agent-errors","clojure-version","coll?","comment","commute","comp","comparator","compare","compare-and-set!","compile","complement","completing","concat","cond","cond->","cond->>","condp","conj","conj!","cons","constantly","construct-proxy","contains?","count","counted?","create-ns","create-struct","cycle","dec","dec'","decimal?","declare","dedupe","default-data-readers","definline","definterface","defmacro","defmethod","defmulti","defn","defn-","defonce","defprotocol","defrecord","defstruct","deftype","delay","delay?","deliver","denominator","deref","derive","descendants","destructure","disj","disj!","dissoc","dissoc!","distinct","distinct?","doall","dorun","doseq","dosync","dotimes","doto","double","double-array","double?","doubles","drop","drop-last","drop-while","eduction","empty","empty?","ensure","ensure-reduced","enumeration-seq","error-handler","error-mode","eval","even?","every-pred","every?","ex-data","ex-info","extend","extend-protocol","extend-type","extenders","extends?","false?","ffirst","file-seq","filter","filterv","find","find-keyword","find-ns","find-protocol-impl","find-protocol-method","find-var","first","flatten","float","float-array","float?","floats","flush","fn","fn?","fnext","fnil","for","force","format","frequencies","future","future-call","future-cancel","future-cancelled?","future-done?","future?","gen-class","gen-interface","gensym","get","get-in","get-method","get-proxy-class","get-thread-bindings","get-validator","group-by","halt-when","hash","hash-combine","hash-map","hash-ordered-coll","hash-set","hash-unordered-coll","ident?","identical?","identity","if-let","if-not","if-some","ifn?","import","in-ns","inc","inc'","indexed?","init-proxy","inst-ms","inst-ms*","inst?","instance?","int","int-array","int?","integer?","interleave","intern","interpose","into","into-array","ints","io!","isa?","iterate","iterator-seq","juxt","keep","keep-indexed","key","keys","keyword","keyword?","last","lazy-cat","lazy-seq","let","letfn","line-seq","list","list*","list?","load","load-file","load-reader","load-string","loaded-libs","locking","long","long-array","longs","loop","macroexpand","macroexpand-1","make-array","make-hierarchy","map","map-entry?","map-indexed","map?","mapcat","mapv","max","max-key","memfn","memoize","merge","merge-with","meta","method-sig","methods","min","min-key","mix-collection-hash","mod","munge","name","namespace","namespace-munge","nat-int?","neg-int?","neg?","newline","next","nfirst","nil?","nnext","not","not-any?","not-empty","not-every?","not=","ns","ns-aliases","ns-imports","ns-interns","ns-map","ns-name","ns-publics","ns-refers","ns-resolve","ns-unalias","ns-unmap","nth","nthnext","nthrest","num","number?","numerator","object-array","odd?","or","parents","partial","partition","partition-all","partition-by","pcalls","peek","persistent!","pmap","pop","pop!","pop-thread-bindings","pos-int?","pos?","pr","pr-str","prefer-method","prefers","primitives-classnames","print","print-ctor","print-dup","print-method","print-simple","print-str","printf","println","println-str","prn","prn-str","promise","proxy","proxy-call-with-super","proxy-mappings","proxy-name","proxy-super","push-thread-bindings","pvalues","qualified-ident?","qualified-keyword?","qualified-symbol?","quot","rand","rand-int","rand-nth","random-sample","range","ratio?","rational?","rationalize","re-find","re-groups","re-matcher","re-matches","re-pattern","re-seq","read","read-line","read-string","reader-conditional","reader-conditional?","realized?","record?","reduce","reduce-kv","reduced","reduced?","reductions","ref","ref-history-count","ref-max-history","ref-min-history","ref-set","refer","refer-clojure","reify","release-pending-sends","rem","remove","remove-all-methods","remove-method","remove-ns","remove-watch","repeat","repeatedly","replace","replicate","require","reset!","reset-meta!","reset-vals!","resolve","rest","restart-agent","resultset-seq","reverse","reversible?","rseq","rsubseq","run!","satisfies?","second","select-keys","send","send-off","send-via","seq","seq?","seqable?","seque","sequence","sequential?","set","set-agent-send-executor!","set-agent-send-off-executor!","set-error-handler!","set-error-mode!","set-validator!","set?","short","short-array","shorts","shuffle","shutdown-agents","simple-ident?","simple-keyword?","simple-symbol?","slurp","some","some->","some->>","some-fn","some?","sort","sort-by","sorted-map","sorted-map-by","sorted-set","sorted-set-by","sorted?","special-symbol?","spit","split-at","split-with","str","string?","struct","struct-map","subs","subseq","subvec","supers","swap!","swap-vals!","symbol","symbol?","sync","tagged-literal","tagged-literal?","take","take-last","take-nth","take-while","test","the-ns","thread-bound?","time","to-array","to-array-2d","trampoline","transduce","transient","tree-seq","true?","type","unchecked-add","unchecked-add-int","unchecked-byte","unchecked-char","unchecked-dec","unchecked-dec-int","unchecked-divide-int","unchecked-double","unchecked-float","unchecked-inc","unchecked-inc-int","unchecked-int","unchecked-long","unchecked-multiply","unchecked-multiply-int","unchecked-negate","unchecked-negate-int","unchecked-remainder-int","unchecked-short","unchecked-subtract","unchecked-subtract-int","underive","unquote","unquote-splicing","unreduced","unsigned-bit-shift-right","update","update-in","update-proxy","uri?","use","uuid?","val","vals","var-get","var-set","var?","vary-meta","vec","vector","vector-of","vector?","volatile!","volatile?","vreset!","vswap!","when","when-first","when-let","when-not","when-some","while","with-bindings","with-bindings*","with-in-str","with-loading-context","with-local-vars","with-meta","with-open","with-out-str","with-precision","with-redefs","with-redefs-fn","xml-seq","zero?","zipmap","check-sat","check-sat-assuming","declare-fun","declare-sort","define-fun","define-fun-rec","define-funs-rec","define-sort","get-value","get-assignment","get-assertions","get-proof","get-unsat-assumptions","get-unsat-core","get-difficulty","get-learned-literals","exit","reset","reset-assertions","!","(",")","_","set-logic","set-info","get-info","set-option","get-option","push","as","const","declare-codatatype","declare-datatype","declare-datatypes","declare-codatatypes","par","set.comprehension","is","match","get-model","block-model","block-model-values","echo","declare-sorts","declare-funs","declare-preds","declare-const","define-const","simplify","include","get-qe","get-qe-disjunct","get-abduct","get-abduct-next","get-interpol","get-interpol-next","declare-heap","declare-pool","synth-fun","synth-inv","check-synth","check-synth-next","declare-var","constraint","assume","inv-constraint","set-feature","constant","variable",":pattern",":no-pattern",":pool",":inst-add-to-pool",":skolem-add-to-pool",":named",":quant-inst-max-level",":qid","exists","forall","tuple","tuple_project","fmf.card","lambda","exp","sin","cos","tan","csc","sec","cot","arcsin","arccos","arctan","arccsc","arcsec","arccot","sqrt","bvnot","bvand","bvor","bvneg","bvadd","bvmul","bvudiv","bvurem","bvshl","bvlshr","bvult","bvnand","bvnor","bvxor","bvxnor","bvcomp","bvsub","bvsdiv","bvsrem","bvsmod","bvashr","bvule","bvugt","bvuge","bvslt","bvsle","bvsgt","bvsge","bvredor","bvredand","extract","zero_extend","sign_extend","rotate_left","rotate_right","dt.size","tuple_select","tuple_update","str.++","str.len","str.substr","str.contains","str.at","str.indexof","str.replace","str.prefixof","str.suffixof","str.from_code","str.is_digit","str.replace_re","str.replace_re_all","str.indexof_re","str.update","str.tolower","str.toupper","str.rev","seq.++","seq.len","seq.extract","seq.update","seq.at","seq.contains","seq.indexof","seq.replace","seq.prefixof","seq.suffixof","seq.rev","seq.replace_all","seq.unit","seq.nth","str.from_int","str.to_int","str.in_re","str.to_re","str.to_code","str.replace_all","re.++","re.union","re.inter","re.*","re.+","re.opt","re.^","re.loop","re.range","re.comp","re.diff","str.<","str.<=","fp","fp.eq","fp.abs","fp.neg","fp.add","fp.sub","fp.mul","fp.div","fp.fma","fp.sqrt","fp.rem","fp.roundtointegral","fp.min","fp.max","fp.leq","fp.lt","fp.geq","fp.gt","fp.isnormal","fp.issubnormal","fp.iszero","fp.isinfinite","fp.isnan","fp.isnegative","fp.ispositive","fp.to_real","to_fp","to_fp_unsigned","fp.to_ubv","fp.to_sbv","to_fp_bv","to_fp_fp","to_fp_real","to_fp_signed","sep","pto","wand","true","false","=>","ite","xor","+oo","-oo","nan","+zero","-zero","bv","@","div","abs","divisible","to_int","is_int","to_real","iand","int.pow2","select","store","eqrange","bv2nat","int2bv","set.empty","set.union","set.inter","set.minus","set.subset","set.member","set.singleton","set.insert","set.card","set.complement","set.choose","set.is_singleton","set.map","rel.join","rel.product","rel.transpose","rel.tclosure","rel.join_image","rel.iden","bag.empty","bag.union_max","bag.union_disjoint","bag.inter_min","bag.difference_subtract","bag.difference_remove","bag.subbag","bag.count","bag.member","bag.duplicate_removal","bag","bag.card","bag.choose","bag.is_singleton","bag.from_set","bag.to_set","bag.map","bag.filter","bag.fold","table.product","string","reglan","re.none","re.allchar","seq.empty","roundingmode","float16","float32","float64","float128","rne","roundnearesttiestoeven","rna","roundnearesttiestoaway","rtp","roundtowardpositive","rtn","roundtowardnegative","rtz","roundtowardzero"]);
+CodeMirror.defineMode("smt2", () => {
+  const NUM = /^(?:[+\-]?\d+(?:(?:N|(?:[eE][+\-]?\d+))|(?:\.?\d*(?:M|(?:[eE][+\-]?\d+))?)|\/\d+|[xX][0-9a-fA-F]+|r[0-9a-zA-Z]+)?(?=[\\\[\]\s"#'(),;@^`{}~]|$))/;
+  const CHR = /^(?:\\(?:backspace|formfeed|newline|return|space|tab|o[0-7]{3}|u[0-9A-Fa-f]{4}|x[0-9A-Fa-f]{4}|.)?(?=[\\\[\]\s"(),;@^`{}~]|$))/;
+  const ESC = /^\\(?:["'\\bfnrt]|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/;
+  const SYM = /^(?:(?:[^\\\/\[\]\d\s"#'(),;@^`{}~][^\\\[\]\s"(),;@^`{}~]*(?:\.[^\\\/\[\]\d\s"#'(),;@^`{}~][^\\\[\]\s"(),;@^`{}~]*)*\/)?(?:\/|[^\\\/\[\]\d\s"#'(),;@^`{}~][^\\\[\]\s"(),;@^`{}~]*)*(?=[\\\[\]\s"(),;@^`{}~]|$))/;
+  const inString = (stream, st) => {
+    while (!stream.eol()) {
+      if (stream.match(ESC)) continue;
+      if (stream.next() === '"') { st.str = false; break; }
+    }
+    return "string";
+  };
+  return {
+    startState: () => ({ str: false, cdepth: 0 }),
+    token(stream, st) {
+      if (st.str) return inString(stream, st);
+      if (st.cdepth) {                                   // (comment ...) block
+        while (!stream.eol()) { const c = stream.next(); if (c === "(") st.cdepth++; else if (c === ")" && !--st.cdepth) break; }
+        return "comment";
+      }
+      if (stream.match(/^[\s,]+/)) return null;
+      if (stream.match(/^;.*$/)) return "comment";
+      if (stream.match(/^\(comment\b/i)) { st.cdepth = 1; return "comment"; }
+      if (stream.match(NUM)) return "number";
+      if (stream.match(CHR)) return "string";
+      if (stream.eat('"')) { st.str = true; return inString(stream, st); }
+      if (stream.match(/^[()\[\]{}]/)) return "bracket";
+      if (stream.match(/^\/#"(?:\.|(?:")|[^"\n])*"\/g/)) return "string-2";
+      if (stream.match(/^[#'@^`~]/)) return "meta";
+      if (stream.match(SYM)) {
+        const w = stream.current();
+        if (/^:.+$/.test(w)) return "atom";
+        const lw = w.toLowerCase();
+        if (SMT_KEYWORDS.has(lw)) return "keyword";
+        if (lw === "true" || lw === "false" || lw === "nil") return "atom";
+        return "variable";
+      }
+      stream.next(); return null;
+    },
+    lineComment: ";",
+  };
+});
+const cmTheme = () => (document.documentElement.dataset.theme === "dark" ? "vs-dark" : "vs");
 const editor = CodeMirror.fromTextArea($("editor"), {
-  lineNumbers: true, matchBrackets: true, mode: "commonlisp", indentUnit: 2, lineWrapping: false,
+  theme: cmTheme(), lineNumbers: true, matchBrackets: true, mode: "smt2", indentUnit: 2, lineWrapping: false,
   extraKeys: { "Ctrl-Enter": () => run(), "Cmd-Enter": () => run() },
 });
 // the editor's height follows the layout (architecture shown/hidden, window size): keep CodeMirror in sync
@@ -832,6 +897,7 @@ function syncThemeButton() {
   const label = dark ? "Switch to light mode" : "Switch to dark mode";
   $("theme").setAttribute("aria-label", label); $("theme").title = label;
   $("theme-label").textContent = dark ? "Light" : "Dark";
+  if (typeof editor !== "undefined") editor.setOption("theme", cmTheme());   // vs / vs-dark
 }
 let themeTimer = 0;
 $("theme").onclick = () => {
