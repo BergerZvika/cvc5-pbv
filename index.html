@@ -268,6 +268,29 @@ dialog#paper::backdrop { background: rgba(0,0,0,.45); }
 .paper-body table.smt-rules td { padding: 2px 10px; white-space: nowrap; }
 .paper-body table.smt-rules code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .paper-body table.smt-rules sub { font-size: .75em; }
+/* hand-laid-out sections (e.g. Fermat): theorem card, callouts, numbered steps, worked example */
+.paper-body .thm { border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border)); border-left: 4px solid var(--accent);
+  border-radius: 8px; background: color-mix(in srgb, var(--accent) 6%, var(--panel)); padding: 4px 16px 6px; margin: 12px 0; }
+.paper-body .thm-h { font-weight: 700; color: var(--accent); margin: 8px 0 2px; letter-spacing: .01em; }
+.paper-body .thm p { margin: 6px 0; }
+.paper-body .callout { border-radius: 8px; padding: 9px 14px; margin: 12px 0; background: color-mix(in srgb, var(--warn) 10%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--warn) 35%, var(--border)); }
+.paper-body .callout.good { background: color-mix(in srgb, var(--ok) 9%, var(--panel)); border-color: color-mix(in srgb, var(--ok) 35%, var(--border)); }
+.paper-body .callout-actions { margin-top: 8px; }
+.paper-body ol.plist { padding-left: 1.4em; margin: 8px 0; }
+.paper-body ol.plist li { margin: 6px 0; padding-left: .2em; }
+.paper-body ol.plist li::marker { color: var(--accent); font-weight: 700; }
+.paper-body .example-steps { border-left: 2px solid var(--border); margin: 10px 0 10px 12px; padding-left: 0; }
+.paper-body .ex-step { display: flex; gap: 12px; margin: 0 0 12px -13px; }
+.paper-body .ex-n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--accent-fg);
+  font: 700 12px/24px system-ui, sans-serif; text-align: center; margin-top: 1px; }
+.paper-body .ex-step > div { flex: 1; min-width: 0; }
+.paper-body .cases { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 8px; }
+.paper-body .case { border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; background: var(--panel); }
+.paper-body .case-h { font-weight: 650; margin-bottom: 2px; }
+.paper-body code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding: 1px 4px; border-radius: 4px;
+  background: var(--panel); border: 1px solid var(--border); }
+.paper-body table code { padding: 0; border: 0; background: none; }
 .paper-body .footnotes { font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 6px; }
 .paper-body .katex { font-size: 1.05em; }
 .paper-body .katex-display { overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
@@ -650,6 +673,8 @@ $("paper-close").onclick = () => showPaper(null);
 paperEl.addEventListener("close", () => { paperOpen = null; });
 paperEl.addEventListener("click", e => { if (e.target === e.currentTarget) paperEl.close(); });   // click on the backdrop
 paperBody.addEventListener("click", e => {     // a reference to another component's section opens it
+  const ob = e.target.closest("[data-bench]");     // "Open this benchmark"
+  if (ob) { paperEl.close(); openBenchmark(ob.dataset.bench); return; }
   const x = e.target.closest("a.xref"); if (!x) return;
   e.preventDefault(); if (x.dataset.sec !== paperOpen) showPaper(x.dataset.sec);
 });
