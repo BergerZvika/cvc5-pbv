@@ -11,7 +11,6 @@
 <style>
 :root {
   --bg: #f7f7f5; --panel: #ffffff; --fg: #1d1d1f; --muted: #6b6b70; --border: #dcdcdf;
-  --title-b: #0f9b8e;
   --accent: #2f6fde; --accent-fg: #ffffff; --ok: #1f8a4c; --bad: #c0392b; --warn: #b7791f;
   --code-bg: #fbfbfa; --err: #b03a2e;
   --old-bg: #dfe8fb; --old-bd: #3b6fd4; --new-bg: #fde3c4; --new-bd: #d97a12;
@@ -19,7 +18,6 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #141416; --panel: #1c1c1f; --fg: #e8e8ea; --muted: #9a9aa2; --border: #33333a;
-    --title-b: #3fd1c0;
     --accent: #5b8ff0; --accent-fg: #0b0b0c; --ok: #4cc27f; --bad: #f07167; --warn: #e0a84a;
     --code-bg: #18181b; --err: #f08a80;
     --old-bg: #1f2f52; --old-bd: #6f9cf2; --new-bg: #4a3014; --new-bd: #f0a24e;
@@ -27,7 +25,6 @@
 }
 :root[data-theme="dark"] {
   --bg: #141416; --panel: #1c1c1f; --fg: #e8e8ea; --muted: #9a9aa2; --border: #33333a;
-  --title-b: #3fd1c0;
   --accent: #5b8ff0; --accent-fg: #0b0b0c; --ok: #4cc27f; --bad: #f07167; --warn: #e0a84a;
   --code-bg: #18181b; --err: #f08a80;
   --old-bg: #1f2f52; --old-bd: #6f9cf2; --new-bg: #4a3014; --new-bd: #f0a24e;
@@ -40,10 +37,6 @@ html, body { margin: 0; background: var(--bg); color: var(--fg);
 header { padding: 12px 16px 8px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
 header .hd-actions { grid-column: 3; justify-self: end; display: flex; gap: 12px; align-items: center; }
 .titles { grid-column: 2; display: flex; align-items: center; gap: 10px; min-width: 0; }
-.titles .logo { flex: none; width: 30px; height: 30px; }
-.titles .logo rect { fill: var(--accent); }
-.titles .logo rect.b1 { fill: var(--title-b); }
-.titles .logo rect.b0 { fill: none; stroke: var(--accent); stroke-width: 1.4; opacity: .55; }
 #theme { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; }
 #theme svg { width: 16px; height: 16px; }
 /* download button for the native binary (left of the theme button) */
@@ -56,8 +49,7 @@ a.btn:hover { border-color: var(--accent); }
 :root .icon-sun { display: none; }
 :root[data-theme="dark"] .icon-sun { display: inline; } :root[data-theme="dark"] .icon-moon { display: none; }
 header h1 { margin: 0; font-size: 23px; font-weight: 750; letter-spacing: -.01em; line-height: 1.15; white-space: nowrap;
-  background: linear-gradient(92deg, var(--accent) 0%, var(--title-b) 100%); -webkit-background-clip: text; background-clip: text;
-  color: transparent; }
+  color: var(--accent); }
 @media (max-width: 760px) {      /* narrow screens: title on its own row, buttons below */
   header { grid-template-columns: 1fr; justify-items: center; }
   .titles, header .hd-actions { grid-column: 1; justify-self: center; }
@@ -466,7 +458,6 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
 <body>
 <header>
   <div class="titles">
-    <svg class="logo" viewBox="0 0 30 30" aria-hidden="true"><rect x="1.5" y="9" width="5.5" height="12" rx="1.6"/><rect class="b0" x="8.7" y="9.7" width="4.2" height="10.6" rx="1.4"/><rect class="b1" x="15.5" y="9" width="5.5" height="12" rx="1.6"/><rect class="b1" x="23" y="9" width="5.5" height="12" rx="1.6"/></svg>
     <h1>Parametric Bit Vector Solver</h1>
   </div>
   <div class="hd-actions">
