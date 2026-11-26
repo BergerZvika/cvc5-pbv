@@ -1121,6 +1121,7 @@ const TOP_DESC = {
   "oopsla26": "sets in PBV",
 };
 const TOP_ORDER = Object.keys(TOP_DESC);   // top-level sets are listed in this order
+const SUB_ORDER = { "pbv": ["sat25", "QF_PBV", "fvfp-book"] };   // and these sub-folders (others: alphabetical)
 // faded notes on sub-folders, by top-level set
 const SUB_DESC = {
   "cav26": { "enumeration-encoding": "CAV'26 encoding", "single-formula-encoding": "our encoding, with ite" },
@@ -1192,7 +1193,8 @@ function renderBench() {
     crumbs.append(b);
   });
   for (const d of benchDir) node = node.dirs.get(d);
-  const rank = n => benchDir.length ? 0 : (TOP_ORDER.indexOf(n) + 1 || 99);
+  const order = benchDir.length ? (benchDir.length === 1 && SUB_ORDER[benchDir[0]]) || [] : TOP_ORDER;
+  const rank = n => order.indexOf(n) + 1 || 99;
   for (const [name, sub] of [...node.dirs].sort((a, b) => rank(a[0]) - rank(b[0]) || a[0].localeCompare(b[0])))
     list.append(benchItem("dir", (!benchDir.length && DIR_LABEL[name]) || name, `${sub.count.toLocaleString()} files`, () => { benchDir = [...benchDir, name]; renderBench(); list.scrollTop = 0; },
       benchDir.length ? (SUB_DESC[benchDir[0]] || {})[name] || "" : TOP_DESC[name]));
