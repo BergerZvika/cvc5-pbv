@@ -334,6 +334,76 @@ dialog#paper::backdrop { background: rgba(0,0,0,.45); }
 /* benchmark browser */
 .bench-path { font: 600 12.5px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin: 0; min-width: 60px; flex: 1 1 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
+/* Arguments editor */
+.args-row { display: flex; gap: 6px; min-width: 0; }
+.args-row input { flex: 1; min-width: 0; }
+.icon-btn { flex: none; display: inline-flex; align-items: center; justify-content: center; padding: 0 9px; color: var(--muted); }
+.icon-btn:hover { color: var(--accent); }
+dialog#args-dialog { width: min(980px, calc(100vw - 32px)); height: min(720px, calc(100vh - 48px)); padding: 0; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--panel); color: var(--fg); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+dialog#args-dialog[open] { display: flex; flex-direction: column; }
+dialog#args-dialog::backdrop { background: rgba(0,0,0,.45); }
+.ad-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.ad-head h2 { font-size: 15px; margin: 0; }
+.ad-head .spacer { flex: 1; }
+.ad-current { padding: 10px 12px; border-bottom: 1px solid var(--border); background: var(--code-bg); }
+.ad-label { font-size: 12px; font-weight: 600; margin-bottom: 7px; }
+.ad-label span { font-weight: 400; color: var(--muted); margin-left: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 128px; overflow: auto; }
+.chip { display: inline-flex; align-items: stretch; border: 1px solid var(--border); border-radius: 999px; background: var(--panel);
+  font: 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow: hidden; max-width: 100%; }
+.chip > button { border: 0; border-radius: 0; background: none; padding: 4px 4px 4px 11px; font: inherit; color: var(--fg);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.chip > button.x { padding: 0 9px 0 5px; color: var(--muted); font: 15px/1 system-ui, sans-serif; }
+.chip > button.x:hover { color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); }
+.chip:hover { border-color: var(--accent); }
+.chip.sel { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent); }
+.chip.locked { background: color-mix(in srgb, var(--muted) 10%, var(--panel)); }
+.chip.locked > button { padding-right: 11px; color: var(--muted); }
+.chip .lock { display: inline-flex; align-items: center; padding-right: 10px; color: var(--muted); }
+.chips .empty { color: var(--muted); font-size: 13px; }
+.ad-search { display: flex; gap: 8px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.ad-q { flex: 1 1 260px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 8px; padding: 0 10px;
+  background: var(--code-bg); color: var(--muted); }
+.ad-q:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.ad-q input { flex: 1; border: 0; background: none; padding: 8px 0; outline: none; font-size: 14px; }
+.ad-cats { display: inline-flex; }
+.ad-cats button { border-radius: 0; margin-left: -1px; padding: 6px 11px; font-size: 13px; }
+.ad-cats button:first-child { border-radius: 8px 0 0 8px; margin-left: 0; }
+.ad-cats button:last-child { border-radius: 0 8px 8px 0; }
+.ad-cats button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); position: relative; }
+.ad-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+.ad-list { overflow: auto; border-right: 1px solid var(--border); padding: 4px 0; }
+.ad-group { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 10px 14px 4px; }
+.ad-item { display: block; width: 100%; text-align: left; border: 0; border-radius: 0; background: none; padding: 7px 14px; border-left: 3px solid transparent; }
+.ad-item:hover, .ad-item:focus-visible { background: color-mix(in srgb, var(--accent) 9%, transparent); outline: none; }
+.ad-item.sel { background: color-mix(in srgb, var(--accent) 14%, transparent); border-left-color: var(--accent); }
+.ad-item .nm { font: 600 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.ad-item .hp { display: block; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+.ad-item mark { background: color-mix(in srgb, var(--warn) 30%, transparent); color: inherit; border-radius: 2px; }
+.badge { display: inline-block; font: 600 10.5px/1.5 system-ui, sans-serif; padding: 0 6px; border-radius: 999px; margin-left: 6px; vertical-align: 1px;
+  border: 1px solid var(--border); color: var(--muted); }
+.badge.on { border-color: var(--ok); color: var(--ok); }
+.badge.common { border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); color: var(--accent); }
+.ad-detail { overflow: auto; padding: 14px 16px; }
+.ad-detail .ph { color: var(--muted); font-size: 13px; text-align: center; margin-top: 30px; line-height: 1.6; }
+.ad-detail h3 { font: 700 15px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin: 0 0 6px; word-break: break-all; }
+.ad-detail .meta { color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+.ad-detail .help { font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; margin: 0 0 12px; max-height: 260px; overflow: auto; }
+.ad-detail .help.short { max-height: none; }
+.ad-detail .more { border: 0; background: none; padding: 0; color: var(--accent); font-size: 12.5px; margin: -6px 0 12px; }
+.ad-set { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; background: var(--code-bg); }
+.ad-set .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.ad-set .row + .row { margin-top: 8px; }
+.ad-set input, .ad-set select { flex: 1 1 200px; min-width: 0; }
+.ad-set .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.ad-set .hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+.ad-set code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.ad-modes { margin-top: 8px; font-size: 12.5px; color: var(--muted); max-height: 150px; overflow: auto; }
+.ad-modes b { color: var(--fg); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 600; }
+.ad-foot { padding: 7px 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+@media (max-width: 720px) { .ad-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
+  .ad-list { border-right: 0; border-bottom: 1px solid var(--border); } }
 dialog#bench-dialog { width: min(860px, calc(100vw - 32px)); height: min(640px, calc(100vh - 48px)); padding: 0; border: 1px solid var(--border);
   border-radius: 10px; background: var(--panel); color: var(--fg); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
 dialog#bench-dialog[open] { display: flex; flex-direction: column; }
@@ -391,8 +461,11 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <select id="config"></select>
     </div>
     <div class="field grow">
-      <label for="args">Arguments <span title="{file} is replaced by the input file; otherwise the file is appended">(input file: <code>{file}</code>)</span></label>
-      <input id="args" type="text" spellcheck="false" autocomplete="off">
+      <label for="args">Arguments</label>
+      <div class="args-row">
+        <input id="args" type="text" spellcheck="false" autocomplete="off">
+        <button id="args-edit" type="button" class="icon-btn" aria-haspopup="dialog" title="Edit the arguments: remove them or search all cvc5 options" aria-label="Edit arguments"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+      </div>
     </div>
     <div class="field">
       <label for="timeout">Timeout (s)</label>
@@ -498,6 +571,28 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
   </div>
   <div class="paper-body" id="paper-body" tabindex="0"></div>
   <div class="paper-foot">From the paper; hover a citation for the reference.</div>
+</dialog>
+<dialog id="args-dialog" aria-labelledby="ad-title">
+  <div class="ad-head">
+    <h2 id="ad-title">Arguments</h2>
+    <span class="spacer"></span>
+    <button type="button" id="ad-done" class="primary">Done</button>
+  </div>
+  <div class="ad-current">
+    <div class="ad-label">Current arguments <span>click a chip to see or change it, &times; to remove it</span></div>
+    <div id="ad-chips" class="chips"></div>
+  </div>
+  <div class="ad-search">
+    <label class="ad-q"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="ad-q" type="search" placeholder="Search cvc5 options, e.g. models, pbv, time limit" autocomplete="off" spellcheck="false"></label>
+    <div class="ad-cats" id="ad-cats" role="group" aria-label="Option category">
+      <button type="button" data-cat="" aria-pressed="true">All</button><button type="button" data-cat="common" aria-pressed="false">Common</button><button type="button" data-cat="regular" aria-pressed="false">Regular</button><button type="button" data-cat="expert" aria-pressed="false">Expert</button>
+    </div>
+  </div>
+  <div class="ad-body">
+    <div id="ad-list" class="ad-list" role="listbox" aria-label="cvc5 options"></div>
+    <div id="ad-detail" class="ad-detail"></div>
+  </div>
+  <div class="ad-foot" id="ad-foot"></div>
 </dialog>
 <dialog id="bench-dialog" aria-labelledby="bd-title">
   <div class="bd-head">
@@ -709,6 +804,176 @@ function onCompClick(e) {
   syncConfigFromArgs();
 }
 document.querySelector(".arch").addEventListener("click", onCompClick);
+
+// ---------------------------------------------------------------------------
+// Arguments window: the current arguments as removable chips, and a search over all cvc5
+// options (wasm/cvc5-options.json, generated by web/cvc5_options.py from cvc5's options/*.toml)
+// ---------------------------------------------------------------------------
+const argsDlg = $("args-dialog"), adChips = $("ad-chips"), adList = $("ad-list"), adDetail = $("ad-detail"), adQ = $("ad-q");
+let cvcOptions = null, optByName = new Map(), optByShort = new Map(), adCat = "", adSel = null;
+const escHtml = t => t.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const BASE_TOKS = BASE.split(" ");
+function parseTok(t) {                           // "--name", "--name=v", "--no-name", "-m" -> { name, value, neg }
+  let m = /^--no-(.+)$/.exec(t);
+  if (m && optByName.get(m[1])?.type === "bool") return { name: m[1], neg: true };
+  m = /^--([^=]+)(?:=(.*))?$/.exec(t);
+  if (m) return { name: m[1], value: m[2] };
+  m = /^-([A-Za-z])$/.exec(t);
+  if (m && optByShort.has(m[1])) return { name: optByShort.get(m[1]).name };
+  return null;
+}
+const curToks = () => splitArgs(argsIn.value);
+const tokFor = name => curToks().find(t => parseTok(t)?.name === name);
+function setOpt(name, tok) {                     // replace every occurrence of option `name` by `tok` (or remove it)
+  const toks = curToks().filter(t => parseTok(t)?.name !== name);
+  if (tok) toks.push(tok);
+  argsIn.value = toks.map(quoteArg).join(" ");
+  syncConfigFromArgs();
+  adRefresh();
+}
+function removeTok(i) {
+  const toks = curToks(); toks.splice(i, 1);
+  argsIn.value = toks.map(quoteArg).join(" ");
+  syncConfigFromArgs(); adRefresh();
+}
+function renderChips() {
+  adChips.replaceChildren();
+  const toks = curToks();
+  if (!toks.length) { adChips.innerHTML = '<span class="empty">No arguments. Search below to add cvc5 options.</span>'; return; }
+  toks.forEach((t, i) => {
+    const c = document.createElement("span"), p = parseTok(t), locked = BASE_TOKS.includes(t);
+    c.className = "chip" + (locked ? " locked" : "") + (p && p.name === adSel ? " sel" : "");
+    const b = document.createElement("button"); b.type = "button"; b.textContent = t;
+    b.title = locked ? "Always passed by the playground" : "Show this option";
+    if (p && optByName.has(p.name)) b.onclick = () => selectOpt(p.name);
+    c.append(b);
+    if (locked) c.insertAdjacentHTML("beforeend", '<span class="lock" title="Always passed by the playground"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>');
+    else { const x = document.createElement("button"); x.type = "button"; x.className = "x"; x.textContent = "×";
+      x.title = "Remove " + t; x.setAttribute("aria-label", "Remove " + t); x.onclick = () => removeTok(i); c.append(x); }
+    adChips.append(c);
+  });
+}
+const paperOptNames = () => new Set(CONFIGS.flatMap(c => splitArgs([BASE, c[3]].join(" "))).map(t => parseTok(t)?.name).filter(Boolean).concat(["produce-models"]));
+function optRow(o, q) {
+  const b = document.createElement("button"); b.type = "button"; b.className = "ad-item" + (o.name === adSel ? " sel" : "");
+  b.setAttribute("role", "option"); b.dataset.name = o.name;
+  const hl = t => { let h = escHtml(t); for (const w of q) h = h.replace(new RegExp("(" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig"), "<mark>$1</mark>"); return h; };
+  const used = tokFor(o.name);
+  b.innerHTML = `<span class="nm">--${hl(o.name)}${o.arg ? "=" + escHtml(o.arg) : ""}</span>` +
+    (used ? '<span class="badge on">in use</span>' : "") + (o.cat === "common" ? '<span class="badge common">common</span>' : "") +
+    `<span class="hp">${hl(o.help.slice(0, 160))}</span>`;
+  b.onclick = () => selectOpt(o.name);
+  return b;
+}
+function renderList() {
+  adList.replaceChildren();
+  if (!cvcOptions) { adList.innerHTML = '<div class="ad-group">Loading options…</div>'; return; }
+  const q = adQ.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const pool = cvcOptions.filter(o => !adCat || o.cat === adCat);
+  const group = (title, opts) => { if (!opts.length) return; adList.append(Object.assign(document.createElement("div"), { className: "ad-group", textContent: title })); for (const o of opts) adList.append(optRow(o, q)); };
+  if (!q.length) {
+    const used = new Set(curToks().map(t => parseTok(t)?.name).filter(Boolean)), paper = paperOptNames();
+    group("In use", pool.filter(o => used.has(o.name)));
+    group("Used in this paper", pool.filter(o => paper.has(o.name) && !used.has(o.name)));
+    group(adCat ? "All " + adCat + " options" : "Common options", pool.filter(o => (adCat || o.cat === "common") && !used.has(o.name) && !paper.has(o.name)));
+    return;
+  }
+  const score = o => {                              // every word must match the name or the description
+    let sc = 0; const n = o.name.toLowerCase(), h = o.help.toLowerCase();
+    for (const w of q) {
+      if (n === w) sc += 100; else if (n.startsWith(w)) sc += 40; else if (n.includes(w)) sc += 25; else if (h.includes(w)) sc += 5; else return -1;
+      if (n.split("-").includes(w)) sc += 8;          // a whole word of the name
+    }
+    return sc + (o.cat === "common" ? 3 : o.cat === "regular" ? 1 : 0);
+  };
+  const hits = pool.map(o => [score(o), o]).filter(([sc]) => sc >= 0).sort((a, b) => b[0] - a[0] || a[1].name.localeCompare(b[1].name));
+  if (!hits.length) { adList.innerHTML = '<div class="ad-group">No matching option</div>'; return; }
+  group(`${hits.length} matching option${hits.length > 1 ? "s" : ""}`, hits.slice(0, 200).map(h => h[1]));
+}
+function selectOpt(name) {
+  adSel = name;
+  adList.querySelectorAll(".ad-item").forEach(b => b.classList.toggle("sel", b.dataset.name === name));
+  renderChips(); renderDetail();
+}
+function renderDetail() {
+  const o = adSel && optByName.get(adSel);
+  if (!o) { adDetail.innerHTML = '<div class="ph">Choose an option on the left<br>to read about it and add it.</div>'; return; }
+  const cur = tokFor(o.name), p = cur && parseTok(cur), locked = cur && BASE_TOKS.includes(cur);
+  const long = o.help.length > 700;
+  adDetail.innerHTML = `<h3>--${escHtml(o.name)}${o.arg ? "=" + escHtml(o.arg) : ""}</h3>
+    <div class="meta">${escHtml(o.module)} · ${o.cat}${o.short ? " · short form -" + escHtml(o.short) : ""}${o.default !== undefined && o.default !== "" ? " · default " + escHtml(o.default) : ""}</div>
+    <p class="help${long ? "" : " short"}">${escHtml(long ? o.help.slice(0, 700) + "…" : o.help)}</p>${long ? '<button type="button" class="more">Show the full description</button>' : ""}
+    <div class="ad-set"></div>`;
+  if (long) adDetail.querySelector(".more").onclick = e => { const h = adDetail.querySelector(".help"); h.textContent = o.help; h.classList.add("short"); e.target.remove(); };
+  const box = adDetail.querySelector(".ad-set");
+  const row = () => box.appendChild(Object.assign(document.createElement("div"), { className: "row" }));
+  const btn = (label, onClick, cls) => { const b = Object.assign(document.createElement("button"), { type: "button", textContent: label, className: cls || "" }); b.onclick = onClick; return b; };
+  const hint = t => box.insertAdjacentHTML("beforeend", `<div class="hint">${t}</div>`);
+  if (o.type === "bool") {
+    const r = row(); r.classList.add("seg");
+    const state = !cur ? "unset" : p.neg || p.value === "false" ? "off" : "on";
+    const on = btn("On", () => setOpt(o.name, "--" + o.name)); on.setAttribute("aria-pressed", String(state === "on"));
+    r.append(on);
+    if (o.neg) { const off = btn("Off", () => setOpt(o.name, "--no-" + o.name)); off.setAttribute("aria-pressed", String(state === "off")); r.append(off); }
+    const un = btn("Not set", () => setOpt(o.name, null)); un.setAttribute("aria-pressed", String(state === "unset")); r.append(un);
+    hint(state === "unset" ? `Not in the arguments: cvc5 uses its default (${escHtml(o.default || "false")}).` : `In the arguments as <code>${escHtml(cur)}</code>.`);
+  } else {
+    const r = row(); let input;
+    if (o.modes) {
+      input = document.createElement("select");
+      for (const m of o.modes) input.append(new Option(m.name, m.name));
+      input.value = p && p.value !== undefined ? p.value : (o.modes.find(m => m.name === o.default)?.name || o.modes[0].name);
+    } else {
+      input = Object.assign(document.createElement("input"), { type: "text", spellcheck: false, value: p && p.value !== undefined ? p.value : "",
+        placeholder: o.arg === "LIST" ? "comma-separated values" : (o.default !== undefined ? "default: " + o.default : "value") });
+      if (/int|double|float/.test(o.type)) input.inputMode = "decimal";
+    }
+    const apply = () => { const v = input.value.trim(); if (v) setOpt(o.name, `--${o.name}=${v}`); };
+    if (input.tagName === "INPUT") input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); apply(); } });
+    r.append(input, btn(cur ? "Update" : "Add", apply, "primary"));
+    if (cur && !locked) r.append(btn("Remove", () => setOpt(o.name, null)));
+    hint(cur ? `In the arguments as <code>${escHtml(cur)}</code>.` : "Not in the arguments: cvc5 uses its default" + (o.default !== undefined && o.default !== "" ? ` (${escHtml(o.default)})` : "") + ".");
+    if (o.modes) box.insertAdjacentHTML("beforeend", '<div class="ad-modes">' + o.modes.map(m => `<div><b>${escHtml(m.name)}</b>${m.help ? " – " + escHtml(m.help) : ""}</div>`).join("") + "</div>");
+  }
+  if (locked) hint("This flag is always passed by the playground.");
+}
+function adRefresh() {
+  renderChips();
+  const keep = adList.scrollTop; renderList(); adList.scrollTop = keep;
+  renderDetail();
+}
+async function openArgsDialog() {
+  argsDlg.showModal(); adRefresh(); adQ.focus();
+  if (!cvcOptions) {
+    try {
+      const r = await fetch("wasm/cvc5-options.json"); if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      cvcOptions = await r.json();
+      for (const o of cvcOptions) { optByName.set(o.name, o); if (o.short) optByShort.set(o.short, o); }
+      $("ad-foot").textContent = `${cvcOptions.length} options of cvc5 1.3.2 (pbv-theory, the same version the playground runs). Changes apply to the Arguments box right away.`;
+      adRefresh();
+    } catch (err) { adList.innerHTML = `<div class="ad-group">Could not load the option list: ${escHtml(String(err.message || err))}</div>`; }
+  }
+}
+$("args-edit").onclick = openArgsDialog;
+$("ad-done").onclick = () => argsDlg.close();
+argsDlg.addEventListener("click", e => { if (e.target === argsDlg) argsDlg.close(); });
+adQ.addEventListener("input", () => renderList());
+adQ.addEventListener("keydown", e => {
+  if (e.key === "ArrowDown") { e.preventDefault(); adList.querySelector(".ad-item")?.focus(); }
+  if (e.key === "Enter") { e.preventDefault(); const f = adList.querySelector(".ad-item"); if (f) selectOpt(f.dataset.name); }
+});
+adList.addEventListener("keydown", e => {
+  if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+  e.preventDefault();
+  const items = [...adList.querySelectorAll(".ad-item")], i = items.indexOf(document.activeElement);
+  (items[i + (e.key === "ArrowDown" ? 1 : -1)] || (e.key === "ArrowUp" ? adQ : null))?.focus();
+});
+$("ad-cats").addEventListener("click", e => {
+  const b = e.target.closest("button[data-cat]"); if (!b) return;
+  adCat = b.dataset.cat;
+  $("ad-cats").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  renderList();
+});
 
 // ---------------------------------------------------------------------------
 // Paper panel: the section of the paper behind a component (paper/<comp>.json,
