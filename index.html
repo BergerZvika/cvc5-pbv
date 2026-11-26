@@ -295,6 +295,13 @@ dialog#paper::backdrop { background: rgba(0,0,0,.45); }
 .paper-body .alg3 { border-top: 1px solid var(--fg); border-bottom: 1px solid var(--fg); padding: 8px 12px; margin-top: 6px; }
 .paper-body .alg3 .ind { padding-left: 1.6em; }
 .paper-body .alg3 .gap { margin-top: 10px; }
+.paper-body .alg3 .fn-def { scroll-margin-top: 12px; border-radius: 6px; transition: background .6s; }
+.paper-body figure.paper-algo { scroll-margin-top: 12px; border-radius: 6px; transition: background .6s; }
+.paper-body .flash { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.paper-body a.fnlink { color: var(--accent); text-decoration: none; border-radius: 3px; }
+.paper-body a.fnlink:hover { text-decoration: underline; background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.paper-body h3.ext a.fnlink::after { content: none; }
+.paper-body .ul { border-bottom: 1px solid currentColor; padding-bottom: 1px; }
 .paper-body .alg3-rules { border: 0; margin: 4px 0 0 3.2em; font-size: 14px; }
 .paper-body .alg3-rules td { padding: 1px 8px; border: 0; }
 .paper-body .alg3-rules td.ar { padding: 1px 14px; }
@@ -1067,6 +1074,19 @@ $("paper-close").onclick = () => showPaper(null);
 paperEl.addEventListener("close", () => { paperOpen = null; });
 paperEl.addEventListener("click", e => { if (e.target === e.currentTarget) paperEl.close(); });   // click on the backdrop
 paperBody.addEventListener("click", e => {     // a reference to another component's section opens it
+  const fl = e.target.closest('a[href^="#"]');     // a function name: jump to its definition in this window
+  if (fl) {
+    e.preventDefault();
+    const target = paperBody.querySelector(fl.getAttribute("href"));
+    if (target) {
+      const def = target;
+      // a function that opens its algorithm: show the algorithm from its caption
+      const fig = target.closest("figure"), first = target.parentElement && target.parentElement.firstElementChild === target;
+      (fig && first ? fig : def).scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+      def.classList.add("flash"); setTimeout(() => def.classList.remove("flash"), 1200);
+    }
+    return;
+  }
   const ob = e.target.closest("[data-bench]");     // "Open this benchmark"
   if (ob) { paperEl.close(); openBenchmark(ob.dataset.bench); return; }
   const x = e.target.closest("a.xref"); if (!x) return;
