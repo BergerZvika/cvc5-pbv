@@ -1121,10 +1121,11 @@ const TOP_DESC = {
   "oopsla26": "sets in PBV",
 };
 const TOP_ORDER = Object.keys(TOP_DESC);   // top-level sets are listed in this order
-const SUB_ORDER = { "pbv": ["sat25", "QF_PBV", "fvfp-book"] };   // and these sub-folders (others: alphabetical)
+const SUB_ORDER = { "pbv": ["sat25", "QF_PBV", "fvfp-book"], "eia": ["LoAT", "PURRS", "qf_sat25", "q_sat25"] };   // and these sub-folders (others: alphabetical)
 // faded notes on sub-folders, by top-level set
 const SUB_DESC = {
   "cav26": { "enumeration-encoding": "CAV'26 encoding", "single-formula-encoding": "our encoding, with ite" },
+  "eia": { "qf_sat25": "SAT'25 sets, quantifier-free", "q_sat25": "SAT'25 ic set, quantified" },
 };
 // folder names shown differently from their URL-safe names
 const DIR_LABEL = { "eia": "EIA", "pbv": "PBV", "cav26": "CAV'26", "oopsla26": "OOPSLA'26" };
