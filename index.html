@@ -133,6 +133,10 @@ button:disabled { opacity: .55; cursor: default; }
 .cm-s-vs-dark .cm-comment { color: #6a9955; }
 .cm-s-vs-dark .cm-variable, .cm-s-vs-dark .cm-meta { color: #d4d4d4; }
 .cm-s-vs-dark .cm-bracket { color: #dcdcdc; }
+/* a parenthesis without a partner */
+.CodeMirror .cm-unmatched { color: #e00000 !important; font-weight: 700; background: rgba(224, 0, 0, .14); border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(224, 0, 0, .5); }
+:root[data-theme="dark"] .CodeMirror .cm-unmatched { color: #ff6b6b !important; background: rgba(255, 80, 80, .2); box-shadow: 0 0 0 1px rgba(255, 107, 107, .7); }
 /* every occurrence of the variable under the cursor */
 /* the blue of the editor's keywords: #0000ff (vs), #569cd6 (vs-dark) */
 .CodeMirror .cm-occ { background: rgba(0, 0, 255, .16); border-radius: 3px; box-shadow: 0 0 0 1.5px rgba(0, 0, 255, .55); }
@@ -1719,6 +1723,39 @@ function markOccurrences(cm) {
 }
 editor.on("cursorActivity", cm => { clearTimeout(occTimer); occTimer = setTimeout(() => markOccurrences(cm), 40); });
 editor.on("change", () => { clearTimeout(occTimer); clearOcc(); });
+
+// Parentheses without a partner are shown in red (outside strings, |symbols| and comments)
+let parenMarks = [], parenTimer = 0;
+// SMT-LIB commands only appear at the top level: one that starts inside an open parenthesis means
+// that parenthesis was never closed
+const SMT_COMMANDS = new Set(["assert", "check-sat", "check-sat-assuming", "declare-const", "declare-fun", "declare-sort",
+  "declare-datatype", "declare-datatypes", "define-fun", "define-fun-rec", "define-funs-rec", "define-sort", "echo", "exit",
+  "get-assertions", "get-assignment", "get-info", "get-model", "get-option", "get-proof", "get-unsat-assumptions",
+  "get-unsat-core", "get-value", "pop", "push", "reset", "reset-assertions", "set-info", "set-logic", "set-option"]);
+function markUnmatchedParens() {
+  editor.operation(() => { for (const m of parenMarks) m.clear(); });
+  parenMarks = [];
+  if (bigInput) return;                              // the editor shows only the start of the input
+  const text = editor.getValue(), open = [], bad = [];
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === ";") { const j = text.indexOf("\n", i); if (j < 0) break; i = j; }
+    else if (c === '"') { let j = i + 1; while (j < text.length && (text[j] !== '"' || text[j + 1] === '"')) j += text[j] === '"' ? 2 : 1; i = j; }
+    else if (c === "|") { const j = text.indexOf("|", i + 1); if (j < 0) break; i = j; }
+    else if (c === "(") {
+      const w = /^\(\s*([a-z-]+)/.exec(text.slice(i, i + 40));
+      if (w && open.length && SMT_COMMANDS.has(w[1])) { bad.push(...open); open.length = 0; }
+      open.push(i);
+    }
+    else if (c === ")") { if (open.length) open.pop(); else bad.push(i); }
+  }
+  bad.push(...open);
+  editor.operation(() => {
+    for (const i of bad.slice(0, 1000))
+      parenMarks.push(editor.markText(editor.posFromIndex(i), editor.posFromIndex(i + 1), { className: "cm-unmatched", title: "No matching parenthesis" }));
+  });
+}
+editor.on("change", () => { clearTimeout(parenTimer); parenTimer = setTimeout(markUnmatchedParens, 150); });
 
 // draggable splitter between the input and output panes
 (() => {
