@@ -358,9 +358,6 @@ dialog#args-dialog::backdrop { background: rgba(0,0,0,.45); }
 .chip > button.x:hover { color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); }
 .chip:hover { border-color: var(--accent); }
 .chip.sel { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent); }
-.chip.locked { background: color-mix(in srgb, var(--muted) 10%, var(--panel)); }
-.chip.locked > button { padding-right: 11px; color: var(--muted); }
-.chip .lock { display: inline-flex; align-items: center; padding-right: 10px; color: var(--muted); }
 .chips .empty { color: var(--muted); font-size: 13px; }
 .ad-search { display: flex; gap: 8px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
 .ad-q { flex: 1 1 260px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 8px; padding: 0 10px;
@@ -774,9 +771,9 @@ function compToggle(toks, c) {
 }
 function compFlags(c) { return c.type === "flags" ? c.names.join(" ") : c.type === "flag" ? c.name : `${c.name}=${c.value}`; }
 const quoteArg = a => (/[\s"']/.test(a) || a === "" ? JSON.stringify(a) : a);
-// preset matching ignores the default flags and output-only flags such as --produce-models
+// preset matching ignores output-only flags such as --produce-models
 const OUTPUT_FLAGS = /^(--produce-models(=true)?|-m)$/;
-const normArgs = s => splitArgs(s).filter(t => !BASE.split(" ").includes(t) && !OUTPUT_FLAGS.test(t)).map(t => t.includes("=") ? t.replace(/=(.*)$/, (m, v) => "=" + v.split(",").sort().join(",")) : t).sort().join(" ");
+const normArgs = s => splitArgs(s).filter(t => !OUTPUT_FLAGS.test(t)).map(t => t.includes("=") ? t.replace(/=(.*)$/, (m, v) => "=" + v.split(",").sort().join(",")) : t).sort().join(" ");
 
 function renderArch() {
   const toks = splitArgs(argsIn.value);
@@ -790,7 +787,7 @@ function renderArch() {
 // select the preset that the arguments match, or "Custom"
 function syncConfigFromArgs() {
   const n = normArgs(argsIn.value);
-  const match = CONFIGS.find(c => normArgs(c[3]) === n);
+  const match = CONFIGS.find(c => normArgs([BASE, c[3]].join(" ")) === n);
   if (match) { customOpt.remove(); cfgSel.value = match[0]; }
   else { if (!customOpt.parentNode) cfgSel.append(customOpt); cfgSel.value = "custom"; }
   cfgSel.dataset.prev = cfgSel.value;
@@ -812,7 +809,6 @@ document.querySelector(".arch").addEventListener("click", onCompClick);
 const argsDlg = $("args-dialog"), adChips = $("ad-chips"), adList = $("ad-list"), adDetail = $("ad-detail"), adQ = $("ad-q");
 let cvcOptions = null, optByName = new Map(), optByShort = new Map(), adCat = "", adSel = null;
 const escHtml = t => t.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-const BASE_TOKS = BASE.split(" ");
 function parseTok(t) {                           // "--name", "--name=v", "--no-name", "-m" -> { name, value, neg }
   let m = /^--no-(.+)$/.exec(t);
   if (m && optByName.get(m[1])?.type === "bool") return { name: m[1], neg: true };
@@ -841,14 +837,13 @@ function renderChips() {
   const toks = curToks();
   if (!toks.length) { adChips.innerHTML = '<span class="empty">No arguments. Search below to add cvc5 options.</span>'; return; }
   toks.forEach((t, i) => {
-    const c = document.createElement("span"), p = parseTok(t), locked = BASE_TOKS.includes(t);
-    c.className = "chip" + (locked ? " locked" : "") + (p && p.name === adSel ? " sel" : "");
+    const c = document.createElement("span"), p = parseTok(t);
+    c.className = "chip" + (p && p.name === adSel ? " sel" : "");
     const b = document.createElement("button"); b.type = "button"; b.textContent = t;
-    b.title = locked ? "Always passed by the playground" : "Show this option";
+    b.title = "Show this option";
     if (p && optByName.has(p.name)) b.onclick = () => selectOpt(p.name);
     c.append(b);
-    if (locked) c.insertAdjacentHTML("beforeend", '<span class="lock" title="Always passed by the playground"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>');
-    else { const x = document.createElement("button"); x.type = "button"; x.className = "x"; x.textContent = "×";
+    { const x = document.createElement("button"); x.type = "button"; x.className = "x"; x.textContent = "×";
       x.title = "Remove " + t; x.setAttribute("aria-label", "Remove " + t); x.onclick = () => removeTok(i); c.append(x); }
     adChips.append(c);
   });
@@ -898,7 +893,7 @@ function selectOpt(name) {
 function renderDetail() {
   const o = adSel && optByName.get(adSel);
   if (!o) { adDetail.innerHTML = '<div class="ph">Choose an option on the left<br>to read about it and add it.</div>'; return; }
-  const cur = tokFor(o.name), p = cur && parseTok(cur), locked = cur && BASE_TOKS.includes(cur);
+  const cur = tokFor(o.name), p = cur && parseTok(cur);
   const long = o.help.length > 700;
   adDetail.innerHTML = `<h3>--${escHtml(o.name)}${o.arg ? "=" + escHtml(o.arg) : ""}</h3>
     <div class="meta">${escHtml(o.module)} · ${o.cat}${o.short ? " · short form -" + escHtml(o.short) : ""}${o.default !== undefined && o.default !== "" ? " · default " + escHtml(o.default) : ""}</div>
@@ -931,11 +926,10 @@ function renderDetail() {
     const apply = () => { const v = input.value.trim(); if (v) setOpt(o.name, `--${o.name}=${v}`); };
     if (input.tagName === "INPUT") input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); apply(); } });
     r.append(input, btn(cur ? "Update" : "Add", apply, "primary"));
-    if (cur && !locked) r.append(btn("Remove", () => setOpt(o.name, null)));
+    if (cur) r.append(btn("Remove", () => setOpt(o.name, null)));
     hint(cur ? `In the arguments as <code>${escHtml(cur)}</code>.` : "Not in the arguments: cvc5 uses its default" + (o.default !== undefined && o.default !== "" ? ` (${escHtml(o.default)})` : "") + ".");
     if (o.modes) box.insertAdjacentHTML("beforeend", '<div class="ad-modes">' + o.modes.map(m => `<div><b>${escHtml(m.name)}</b>${m.help ? " – " + escHtml(m.help) : ""}</div>`).join("") + "</div>");
   }
-  if (locked) hint("This flag is always passed by the playground.");
 }
 function adRefresh() {
   renderChips();
@@ -1533,7 +1527,6 @@ async function run() {
   const s = SOLVERS[solverName];
   const input = editor.getValue();
   let argv = splitArgs(argsIn.value);
-  argv = [...BASE.split(" ").filter(f => !argv.includes(f)), ...argv];
   if (argv.includes("{file}")) argv = argv.map(a => (a === "{file}" ? s.file : a));
   else argv.push(s.file);
   if (s.argv0) argv.unshift(s.argv0);
