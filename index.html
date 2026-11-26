@@ -146,6 +146,10 @@ button:disabled { opacity: .55; cursor: default; }
 .zoom button[data-step="1"] { border-radius: 0 6px 6px 0; margin-left: -1px; } .zoom button[data-step="1"] .za { font-size: 13px; }
 .zoom button:disabled { opacity: .4; cursor: default; }
 #output .meta { color: var(--muted); }
+#output .cmd { display: none; }                    /* the "$ cvc5 ..." line, shown by the >_ button */
+#output.show-cmd .cmd { display: inline; }
+#show-cmd { padding: 0 9px; align-self: stretch; }
+#show-cmd[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
 #output .model-hint { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; padding: 8px 10px;
   border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); border-radius: 8px;
   background: color-mix(in srgb, var(--accent) 8%, transparent); font: 13px/1.4 system-ui, sans-serif; white-space: normal; }
@@ -582,6 +586,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <span id="result" class="result hidden"></span>
       <span class="spacer"></span>
       <span id="status" class="status">Ready</span>
+      <button id="show-cmd" type="button" class="icon-btn" aria-pressed="false" title="Show the command line" aria-label="Show the command line"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 4 4-4 4"/><path d="M12 17h7"/></svg></button>
       <button id="copy" title="Copy output">Copy</button>
       <button id="clear" title="Clear output">Clear</button>
       <span class="zoom" role="group" aria-label="Output text size" data-zoom="out"><button type="button" data-step="-1" title="Smaller output text" aria-label="Smaller output text"><span class="za">A</span>&minus;</button><button type="button" data-step="1" title="Larger output text" aria-label="Larger output text"><span class="za">A</span>+</button></span>
@@ -1359,7 +1364,16 @@ $("download").onclick = () => {
   a.href = URL.createObjectURL(new Blob([getInput()], { type: "text/plain" }));
   a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
-$("copy").onclick = () => navigator.clipboard.writeText(out.textContent).then(() => flash($("copy"), "Copied"));
+$("copy").onclick = () => navigator.clipboard.writeText(out.innerText).then(() => flash($("copy"), "Copied"));   // what is shown
+// >_ button: show or hide the command line in the output (remembered)
+function setShowCmd(on, save) {
+  out.classList.toggle("show-cmd", on);
+  const b = $("show-cmd"); b.setAttribute("aria-pressed", String(on));
+  b.title = on ? "Hide the command line" : "Show the command line"; b.setAttribute("aria-label", b.title);
+  if (save) { try { localStorage.setItem("showCmd", on ? "1" : "0"); } catch (e) {} }
+}
+$("show-cmd").onclick = () => setShowCmd(!out.classList.contains("show-cmd"), true);
+try { setShowCmd(localStorage.getItem("showCmd") === "1", false); } catch (e) { setShowCmd(false, false); }
 $("clear").onclick = () => { out.textContent = ""; resultEl.classList.add("hidden"); };
 runBtn.onclick = () => (running ? cancel("cancelled") : run());
 
@@ -1736,7 +1750,7 @@ async function run() {
   resultEl.classList.add("hidden");
   // the solver reads its copy at s.file; show the input's real path instead
   const shown = (s.argv0 ? argv.slice(1) : argv).map(a => a === s.file ? shellQuote(inputPath) : a);
-  log(`$ ${solverName} ${shown.join(" ")}\n`, "meta");
+  log(`$ ${solverName} ${shown.join(" ")}\n`, "meta cmd");    // hidden unless "show command" is on
   runBtn.textContent = "Cancel"; runBtn.classList.remove("primary");
 
   const token = {};
