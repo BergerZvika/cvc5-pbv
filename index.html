@@ -1502,6 +1502,12 @@ const kwOr = (w, x) => isKw(w) ? cls("tk-kw", x) : x;
 const vlen = x => x.replace(/\\htmlClass\{[^}]*\}/g, "").length;    // length of the formula without the colour markup
 function texName(n) {
   if (/^\|.*\|$/.test(n)) n = n.slice(1, -1);
+  if (/^%[A-Za-z]\w*$/.test(n)) n = n.slice(1);                         // Alive's %x -> x
+  let u = /^_*([A-Za-z][A-Za-z0-9]*)_+([A-Za-z0-9_]+?)_*$/.exec(n);       // pbv_s, _pbv_x__param_0 -> pbv with a subscript
+  if (u) {
+    const sub = u[2].split(/_+/).filter(Boolean).map(x => /^\d+$/.test(x) ? x : `\\mathit{${x}}`).join(",");
+    return `${texName(u[1])}_{${sub}}`;
+  }
   let m = /^([A-Za-z]+)_?(\d+)$/.exec(n);
   if (m) return `\\mathit{${m[1]}}_{${m[2]}}`;
   if (/^[A-Za-z]$/.test(n)) return n;
@@ -1563,6 +1569,38 @@ function tex(e) {                                   // -> [LaTeX, precedence]
   if (f === "forall" || f === "exists") {
     const vs = as[0].map(([v, s]) => `${texName(v)}\\!:\\!${kwOr(s, `\\mathsf{${Array.isArray(s) ? s.join(" ") : s}}`)}`).join(",\\ ");
     return [`${kwOr(f, f === "forall" ? "\\forall" : "\\exists")}\\, ${vs}.\\ ${t(as[1])}`, 0];
+  }
+  // a sum with negative terms: a - b instead of a + (-b); products: -x, 2x, -2x
+  const isNum = x => typeof x === "string" && /^\d+(\.\d+)?$/.test(x);
+  const negNum = x => (typeof x === "string" && /^-\d+(\.\d+)?$/.test(x)) ? x.slice(1)
+                      : (Array.isArray(x) && x[0] === "-" && x.length === 2 && isNum(x[1])) ? x[1] : null;
+  const negOf = x => {                              // t with x = -t, or null
+    const c = negNum(x); if (c !== null) return c;
+    if (Array.isArray(x) && x[0] === "-" && x.length === 2) return x[1];           // (- b)
+    if (Array.isArray(x) && x[0] === "*" && x.length === 3) {
+      for (const [a, b] of [[x[1], x[2]], [x[2], x[1]]]) {
+        const k = negNum(a);
+        if (k === "1") return b;
+        if (k !== null) return ["*", k, b];
+      }
+    }
+    return null;
+  };
+  if (f === "+" && as.length >= 2) {
+    let out = paren(tex(as[0]), 5);
+    for (const x of as.slice(1)) {
+      const n = negOf(x);
+      out += n !== null ? ` \\mathbin{${kwOr("-", "-")}} ${paren(tex(n), 5.01)}` : ` \\mathbin{${kwOr("+", "+")}} ${paren(tex(x), 5.01)}`;
+    }
+    return [out, 5];
+  }
+  if (f === "*" && as.length === 2) {
+    const n = negOf(e);
+    if (n !== null) return [`${kwOr("-", "-")}${paren(tex(n), 6)}`, 5];
+    if (isNum(as[0]) && !isNum(as[1])) {           // 2x, 3(x + y)
+      const r = tex(as[1]);
+      return [`${texAtom(as[0])}${r[1] >= 6 ? r[0] : `(${r[0]})`}`, 6];
+    }
   }
   const op = INFIX[f] ? f : bvOp(f);
   if (op && INFIX[op] && as.length >= 2) {
