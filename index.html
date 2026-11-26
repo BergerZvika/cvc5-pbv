@@ -134,9 +134,10 @@ button:disabled { opacity: .55; cursor: default; }
 .cm-s-vs-dark .cm-variable, .cm-s-vs-dark .cm-meta { color: #d4d4d4; }
 .cm-s-vs-dark .cm-bracket { color: #dcdcdc; }
 /* every occurrence of the variable under the cursor */
-.CodeMirror .cm-occ { background: color-mix(in srgb, var(--accent) 20%, transparent); border-radius: 2px;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent); }
-.CodeMirror .cm-occ-cur { background: color-mix(in srgb, var(--accent) 34%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 70%, transparent); }
+.CodeMirror .cm-occ { background: #ffe066; border-radius: 3px; box-shadow: 0 0 0 1.5px #e0a800; }
+.CodeMirror .cm-occ-cur { background: #ffc61a; box-shadow: 0 0 0 2px #b88400; font-weight: 700; }
+:root[data-theme="dark"] .CodeMirror .cm-occ { background: rgba(255, 196, 0, .30); box-shadow: 0 0 0 1.5px rgba(255, 196, 0, .75); }
+:root[data-theme="dark"] .CodeMirror .cm-occ-cur { background: rgba(255, 196, 0, .48); box-shadow: 0 0 0 2px #ffc400; font-weight: 700; }
 .CodeMirror .cm-assert { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
 .CodeMirror .cm-assert:hover { text-decoration-style: solid; }
 /* the formula of a clicked (assert ...) */
