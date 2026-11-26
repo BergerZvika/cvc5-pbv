@@ -1,0 +1,8 @@
+(set-logic PBV)
+(declare-const k Int)
+(declare-fun %B () PBitVec)
+(assert (= (pbvsize %B) k))
+(declare-fun %A () PBitVec)
+(assert (= (pbvsize %A) k))
+(assert (let ((_let_0 (pbvxor (pbvxor %A (pbvnot (int_to_pbv k 0))) %B))) (not (= (pbvor (pbvand %A %B) _let_0) _let_0))))
+(check-sat)

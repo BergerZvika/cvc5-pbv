@@ -1,0 +1,8 @@
+(set-logic PBV)
+(declare-const k Int)
+(declare-fun C () PBitVec)
+(assert (= (pbvsize C) k))
+(declare-fun %Op0 () PBitVec)
+(assert (= (pbvsize %Op0) k))
+(assert (let ((_let_0 (pbvudiv (ite (= (pextract %Op0 (- k 1) (- k 1)) (int_to_pbv 1 1)) (pbvneg %Op0) %Op0) (ite (= (pextract C (- k 1) (- k 1)) (int_to_pbv 1 1)) (pbvneg C) C)))) (and (or (not (= %Op0 (pbvshl (int_to_pbv k 1) (pbvsub (int_to_pbv k k) (int_to_pbv k 1))))) (not (= C (pbvnot (int_to_pbv k 0))))) (= C (pbvshl (int_to_pbv k 1) (pbvsub (int_to_pbv k k) (int_to_pbv k 1)))) (not (= C (int_to_pbv k 0))) (not (= (ite (xor (= (pextract %Op0 (- k 1) (- k 1)) (int_to_pbv 1 1)) (= (pextract C (- k 1) (- k 1)) (int_to_pbv 1 1))) (pbvneg _let_0) _let_0) (pzero_extend (- k 1) (ite (= %Op0 C) (int_to_pbv 1 1) (int_to_pbv 1 0))))))))
+(check-sat)
