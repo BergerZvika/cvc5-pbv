@@ -942,7 +942,7 @@ function renderDetail() {
   } else if (o.modes || o.tokens) {
     // the option's values, each with a short description and an (i) for the full one:
     // radio buttons for a mode (one value), checkboxes for a LIST (comma-separated values)
-    const multi = !o.modes, vals = o.modes || o.tokens.filter(t => t.name !== "none");
+    const multi = !o.modes && !o.oneOf, vals = o.modes || o.tokens.filter(t => t.name !== "none");   // oneOf: a LIST shown as one choice
     const curVals = p && p.value !== undefined ? p.value.split(",").filter(Boolean) : [];
     const extra = multi ? curVals.filter(v => !vals.some(t => t.name === v)) : [];   // values the list does not know: kept
     const apply = () => {
