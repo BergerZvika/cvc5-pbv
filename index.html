@@ -136,16 +136,29 @@ button:disabled { opacity: .55; cursor: default; }
 .CodeMirror .cm-assert { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
 .CodeMirror .cm-assert:hover { text-decoration-style: solid; }
 /* the formula of a clicked (assert ...) */
-#assert-pop { position: fixed; z-index: 50; width: max-content; max-width: min(760px, calc(100vw - 24px)); background: var(--panel); color: var(--fg);
-  border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 14px 40px rgba(0,0,0,.28); display: flex; flex-direction: column; max-height: 60vh; }
+#assert-pop { position: fixed; z-index: 50; width: max-content; min-width: 260px; max-width: min(780px, calc(100vw - 24px)); background: var(--panel); color: var(--fg);
+  border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: 12px; overflow: hidden;
+  box-shadow: 0 18px 50px rgba(0,0,0,.28), 0 2px 6px rgba(0,0,0,.08); display: flex; flex-direction: column; max-height: 62vh;
+  animation: ap-in .14s ease-out; }
+@keyframes ap-in { from { opacity: 0; transform: translateY(-4px) scale(.985); } }
+@media (prefers-reduced-motion: reduce) { #assert-pop { animation: none; } }
 #assert-pop[hidden] { display: none; }
-#assert-pop .ap-head { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--muted); }
-#assert-pop .ap-head b { color: var(--fg); font-weight: 600; }
+#assert-pop .ap-head { display: flex; align-items: center; gap: 8px; padding: 7px 8px 7px 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+#assert-pop .ap-head .ap-ic { display: inline-flex; width: 22px; height: 22px; border-radius: 6px; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); font: italic 600 14px/1 "Times New Roman", serif; }
+#assert-pop .ap-head b { color: var(--fg); font: 600 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+#assert-pop .ap-head .ap-line { border: 1px solid var(--border); border-radius: 999px; padding: 0 7px; font-size: 11px; }
 #assert-pop .ap-head .spacer { flex: 1; }
 #assert-pop .ap-head button { border: 0; background: none; padding: 2px 7px; font-size: 16px; line-height: 1; color: var(--muted); }
 #assert-pop .ap-head button:hover { color: var(--fg); }
-#assert-pop .ap-body { padding: 10px 16px 12px; overflow: auto; font-size: 15px; }
-#assert-pop .ap-body .katex-display { margin: 4px 0; }
+#assert-pop .ap-body { padding: 12px 22px 14px; overflow: auto; font-size: 17px; background: #fffffe; color: #000000; }
+#assert-pop .ap-body .katex-display { margin: 2px 0; }
+/* token colours of the editor theme (vs / vs-dark) */
+#assert-pop .tk-kw { color: #0000ff; } #assert-pop .tk-num { color: #098658; } #assert-pop .tk-str { color: #a31515; }
+#assert-pop .tk-mut { color: #6a737d; }
+:root[data-theme="dark"] #assert-pop .ap-body { background: #1e1e1e; color: #d4d4d4; }
+:root[data-theme="dark"] #assert-pop .tk-kw { color: #569cd6; } :root[data-theme="dark"] #assert-pop .tk-num { color: #b5cea8; }
+:root[data-theme="dark"] #assert-pop .tk-str { color: #ce9178; } :root[data-theme="dark"] #assert-pop .tk-mut { color: #8b949e; }
 #assert-pop .ap-msg { color: var(--muted); font-size: 13px; }
 .cm-s-vs-dark .CodeMirror-matchingbracket { color: inherit !important; background: #0064001a; outline: 1px solid #888888; }
 .out-body { position: relative; }
@@ -671,7 +684,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
   <div class="ad-foot" id="ad-foot"></div>
 </dialog>
 <div id="assert-pop" role="dialog" aria-label="Assertion as a formula" hidden>
-  <div class="ap-head"><b>assert</b><span id="ap-where"></span><span class="spacer"></span><button type="button" id="ap-close" title="Close (Esc)" aria-label="Close">&times;</button></div>
+  <div class="ap-head"><span class="ap-ic" aria-hidden="true">&fnof;</span><b>assert</b><span class="ap-line" id="ap-where"></span><span class="spacer"></span><button type="button" id="ap-close" title="Close (Esc)" aria-label="Close">&times;</button></div>
   <div class="ap-body" id="ap-body"></div>
 </div>
 <dialog id="pv-dialog" aria-labelledby="pv-path">
@@ -1482,21 +1495,26 @@ function bvOp(f) {                                  // pbvadd / bvadd -> "add"; 
   if (m) return ["and", "or", "xor"].includes(m[1]) ? m[1] + "_" : m[1];
   return f === "pconcat" || f === "concat" ? "concat" : null;
 }
+// colours as in the editor: a symbol gets the class of the SMT-LIB word it comes from
+const isKw = w => SMT_KEYWORDS.has(String(w).toLowerCase());
+const cls = (c, x) => `\\htmlClass{${c}}{${x}}`;
+const kwOr = (w, x) => isKw(w) ? cls("tk-kw", x) : x;
+const vlen = x => x.replace(/\\htmlClass\{[^}]*\}/g, "").length;    // length of the formula without the colour markup
 function texName(n) {
   if (/^\|.*\|$/.test(n)) n = n.slice(1, -1);
   let m = /^([A-Za-z]+)_?(\d+)$/.exec(n);
   if (m) return `\\mathit{${m[1]}}_{${m[2]}}`;
   if (/^[A-Za-z]$/.test(n)) return n;
   if (/^[A-Za-z][A-Za-z0-9]*$/.test(n)) return `\\mathit{${n}}`;
-  return "\\text{" + n.replace(/[\\{}$&#_%]/g, c => c === "\\" ? "\\textbackslash{}" : "\\" + c).replace(/\^/g, "\\textasciicircum{}").replace(/~/g, "\\textasciitilde{}") + "}";
+  return "\\textit{" + n.replace(/[\\{}$&#_%]/g, c => c === "\\" ? "\\textbackslash{}" : "\\" + c).replace(/\^/g, "\\textasciicircum{}").replace(/~/g, "\\textasciitilde{}") + "}";
 }
 function texAtom(a) {
-  if (/^-?\d+(\.\d+)?$/.test(a)) return a;
+  if (/^-?\d+(\.\d+)?$/.test(a)) return cls("tk-num", a);
   if (/^#b[01]+$/.test(a)) return `${a.slice(2)}_{2}`;
   if (/^#x[0-9a-fA-F]+$/.test(a)) return `\\mathrm{${a.slice(2)}}_{16}`;
-  if (a === "true") return "\\top"; if (a === "false") return "\\bot";
-  if (a[0] === '"') return "\\text{``" + a.slice(1, -1).replace(/[\\{}$&#_%]/g, c => "\\" + c) + "''}";
-  return texName(a);
+  if (a === "true") return kwOr(a, "\\top"); if (a === "false") return kwOr(a, "\\bot");
+  if (a[0] === '"') return cls("tk-str", "\\text{``" + a.slice(1, -1).replace(/[\\{}$&#_%]/g, c => "\\" + c) + "''}");
+  return isKw(a) ? cls("tk-kw", texName(a)) : texName(a);
 }
 const ATOM = 10;
 function tex(e) {                                   // -> [LaTeX, precedence]
@@ -1504,7 +1522,7 @@ function tex(e) {                                   // -> [LaTeX, precedence]
   if (!e.length) return ["()", ATOM];
   const [f, ...as] = e;
   const t = x => tex(x)[0];
-  const app = (name, args) => [`${name}(${args.map(t).join(", ")})`, ATOM];
+  const app = (name, args) => [`${kwOr(f, name)}(${args.map(t).join(", ")})`, ATOM];
   const paren = ([s, p], min) => (p < min ? `(${s})` : s);
   if (Array.isArray(f)) {                           // ((_ extract i j) t), ((_ zero_extend n) t), ...
     if (f[0] === "_" && f[1] === "extract") return [`${paren(tex(as[0]), ATOM)}[${f[2]}:${f[3]}]`, ATOM];
@@ -1518,8 +1536,8 @@ function tex(e) {                                   // -> [LaTeX, precedence]
     return [as.map(t).join("\\ "), ATOM];
   }
   if (f === "!") return tex(as[0]);                 // annotations
-  if (f === "not") return [`\\neg ${paren(tex(as[0]), 7)}`, 7];
-  if (f === "-" && as.length === 1) return [`-${paren(tex(as[0]), 7)}`, 5];   // binds like +: x + (-1), x · (-1)
+  if (f === "not") return [`${kwOr(f, "\\neg")} ${paren(tex(as[0]), 7)}`, 7];
+  if (f === "-" && as.length === 1) return [`${kwOr(f, "-")}${paren(tex(as[0]), 7)}`, 5];   // binds like +: x + (-1), x · (-1)
   if (/^p?bvnot$/.test(f)) return [`{\\sim}${paren(tex(as[0]), 7)}`, 7];
   if (/^p?bvneg$/.test(f)) return [`-${B}${paren(tex(as[0]), 7)}`, 7];
   if (f === "pextract") return [`${paren(tex(as[0]), ATOM)}[${t(as[1])}:${t(as[2])}]`, ATOM];
@@ -1534,21 +1552,22 @@ function tex(e) {                                   // -> [LaTeX, precedence]
   if (f === "ite") {                               // a chain of ite: a case split
     const rows = []; let cur = e;
     while (Array.isArray(cur) && cur[0] === "ite" && cur.length === 4) { rows.push([cur[2], cur[1]]); cur = cur[3]; }
-    if (rows.length < 2 && (t(as[0]) + t(as[1]) + t(as[2])).length < 90) return app("\\mathrm{ite}", as);
-    return ["\\begin{cases}" + rows.map(([v, c]) => `${t(v)} & \\text{if } ${t(c)}`).join("\\\\") +
-            `\\\\ ${t(cur)} & \\text{otherwise}\\end{cases}`, ATOM];
+    if (rows.length < 2 && vlen(t(as[0]) + t(as[1]) + t(as[2])) < 90) return app("\\mathrm{ite}", as);
+    return ["\\begin{cases}" + rows.map(([v, c]) => `${t(v)} & ${cls("tk-mut", "\\text{if }")} ${t(c)}`).join("\\\\[3pt]") +
+            `\\\\[3pt] ${t(cur)} & ${cls("tk-mut", "\\text{otherwise}")}\\end{cases}`, ATOM];
   }
   if (f === "let") {
     const binds = as[0].map(([v, x]) => `${texName(v)} = ${t(x)}`).join(",\\ ");
-    return [`\\mathrm{let}\\ ${binds}\\ \\mathrm{in}\\ ${t(as[1])}`, 0];
+    return [`${kwOr("let", "\\mathrm{let}")}\\ ${binds}\\ ${kwOr("let", "\\mathrm{in}")}\\ ${t(as[1])}`, 0];
   }
   if (f === "forall" || f === "exists") {
-    const vs = as[0].map(([v, s]) => `${texName(v)}\\!:\\!\\mathsf{${Array.isArray(s) ? s.join(" ") : s}}`).join(",\\ ");
-    return [`${f === "forall" ? "\\forall" : "\\exists"}\\, ${vs}.\\ ${t(as[1])}`, 0];
+    const vs = as[0].map(([v, s]) => `${texName(v)}\\!:\\!${kwOr(s, `\\mathsf{${Array.isArray(s) ? s.join(" ") : s}}`)}`).join(",\\ ");
+    return [`${kwOr(f, f === "forall" ? "\\forall" : "\\exists")}\\, ${vs}.\\ ${t(as[1])}`, 0];
   }
   const op = INFIX[f] ? f : bvOp(f);
   if (op && INFIX[op] && as.length >= 2) {
-    const [sym, prec, assoc] = INFIX[op];
+    const [sym0, prec, assoc] = INFIX[op];
+    const sym = isKw(f) ? (prec === 3 || op === "=>" ? `\\mathrel{${cls("tk-kw", sym0)}}` : `\\mathbin{${cls("tk-kw", sym0)}}`) : sym0;
     const parts = as.map((x, k) => {
       const r = tex(x), sameAssoc = assoc && Array.isArray(x) && (x[0] === f);
       return sameAssoc ? r[0] : paren(r, k === 0 && !assoc ? prec : prec + 0.01);
@@ -1565,18 +1584,19 @@ function assertTex(term) {
   for (const [op, sym] of [["and", "\\wedge"], ["or", "\\vee"]]) {
     if (!Array.isArray(term) || term[0] !== op) continue;
     const parts = flatten(term, op);
-    if (parts.length > 2 || tex(term)[0].length > 160) {
-      const lines = parts.map((x, k) => (k ? sym + "\\ " : `\\phantom{${sym}}\\ `) + "&" + ((r => r[1] <= 2 ? `(${r[0]})` : r[0])(tex(x))));
-      return "\\begin{aligned}" + lines.join("\\\\") + "\\end{aligned}";
+    if (parts.length > 2 || vlen(tex(term)[0]) > 160) {
+      const csym = kwOr(op, sym);
+      const lines = parts.map((x, k) => (k ? csym + "\\ " : `\\phantom{${sym}}\\ `) + "&" + ((r => r[1] <= 2 ? `(${r[0]})` : r[0])(tex(x))));
+      return "\\begin{aligned}" + lines.join("\\\\[4pt]") + "\\end{aligned}";
     }
   }
   // a long comparison: one side per line
   const REL = { "=": "=", "distinct": "\\neq" };
   if (Array.isArray(term) && (REL[term[0]] || (bvOp(term[0]) && INFIX[bvOp(term[0])][1] === 3)) && term.length === 3) {
     const [l, r] = [tex(term[1])[0], tex(term[2])[0]];
-    if (l.length + r.length > 160) {
-      const sym = REL[term[0]] || INFIX[bvOp(term[0])][0];
-      return `\\begin{aligned} & ${l} \\\\ ${sym}\\ & ${r} \\end{aligned}`;
+    if (vlen(l) + vlen(r) > 160) {
+      const sym = kwOr(term[0], REL[term[0]] || INFIX[bvOp(term[0])][0]);
+      return `\\begin{aligned} & ${l} \\\\[4pt] \\mathrel{${sym}}\\ & ${r} \\end{aligned}`;
     }
   }
   return tex(term)[0];
@@ -1616,7 +1636,8 @@ async function showAssert(cm, pos) {
     const e = sexp(src);
     if (!Array.isArray(e) || e[0] !== "assert" || e.length !== 2) throw new Error("not an assertion");
     await loadKatex();
-    katex.render(assertTex(e[1]), body, { displayMode: true, throwOnError: false, strict: "ignore", maxExpand: 5000 });
+    katex.render(assertTex(e[1]), body, { displayMode: true, throwOnError: false, strict: "ignore", maxExpand: 5000,
+      trust: ctx => ctx.command === "\\htmlClass" });
   } catch (err) { body.innerHTML = `<span class="ap-msg">Could not read this assertion: ${escHtml(String(err.message || err))}</span>`; }
   place();
 }
