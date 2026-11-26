@@ -2044,7 +2044,8 @@ async function run() {
   resultEl.classList.add("hidden");
   // the solver reads its copy at s.file; show the input's real path instead
   const shown = (s.argv0 ? argv.slice(1) : argv).map(a => a === s.file ? shellQuote(inputPath) : a);
-  log(`$ ${solverName} ${shown.join(" ")}\n`, "meta cmd");    // hidden unless "show command" is on
+  const shownName = solverName === "cvc5" ? "cvc5-pbv" : solverName;   // the name of the downloadable binary
+  log(`$ ${shownName} ${shown.join(" ")}\n`, "meta cmd");    // hidden unless "show command" is on
   runBtn.textContent = "Cancel"; runBtn.classList.remove("primary");
 
   const token = {};
