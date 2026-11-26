@@ -43,8 +43,7 @@ a.btn { font: inherit; border: 1px solid var(--border); background: var(--panel)
 a.btn:hover { border-color: var(--accent); }
 #dl-bin { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; }
 #dl-bin svg { width: 16px; height: 16px; color: var(--accent); }
-#dl-bin .dl-meta { color: var(--muted); font-size: 12px; }
-@media (max-width: 560px) { #dl-bin .dl-meta { display: none; } }
+
 :root .icon-sun { display: none; }
 :root[data-theme="dark"] .icon-sun { display: inline; } :root[data-theme="dark"] .icon-moon { display: none; }
 header h1 { font-size: 18px; margin: 0; font-weight: 650; }
@@ -374,7 +373,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
   <a id="dl-bin" class="btn" href="downloads/cvc5-pbv-linux-x86_64" download="cvc5-pbv"
      title="Download the cvc5-pbv binary: Linux x86-64, statically linked, 37.7 MB (cvc5 1.3.2.dev, branch pbv-theory, commit 080de3aef). After downloading: chmod +x cvc5-pbv">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
-    <span>cvc5-pbv</span><span class="dl-meta">Linux x86-64</span>
+    <span>cvc5-pbv</span>
   </a>
   <button id="theme" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">
     <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
