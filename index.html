@@ -147,6 +147,8 @@ button:disabled { opacity: .55; cursor: default; }
   background: var(--panel); border: 1px solid var(--border); }
 #output .model-hint button { padding: 4px 12px; }
 .status { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.status .clock { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.status .elapsed { color: var(--fg); font-weight: 600; }
 .result { font-weight: 700; font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; }
 .result.unsat, .result.sat { color: var(--ok); }
 .result.unknown, .result.timeout { color: var(--warn); }
@@ -1206,8 +1208,8 @@ function splitArgs(s) {
 let running = null; // { worker, timer, start, stdout }
 function finish(result, extra) {
   if (!running) return;
-  const { worker, timer, start } = running;
-  clearTimeout(timer); worker.terminate();
+  const { worker, timer, start, ticker } = running;
+  clearTimeout(timer); clearInterval(ticker); worker.terminate();
   running = null;
   if (setupFor) hideSetup(result !== "error" && result !== "cancelled");
   const secs = ((performance.now() - start) / 1000).toFixed(2);
@@ -1305,6 +1307,13 @@ async function run() {
   const limit = Math.max(1, +$("timeout").value || 60);
   running.timer = setTimeout(() => cancel("timeout"), limit * 1000);
   setStatus("Running…", true);
+  // live elapsed time next to the spinner, with the time limit
+  const clock = document.createElement("span"); clock.className = "clock";
+  const el = document.createElement("span"); el.className = "elapsed";
+  const lim = document.createElement("span"); lim.className = "limit"; lim.textContent = ` / ${limit} s`;
+  clock.append(el, lim); statusEl.append(clock);
+  const tick = () => { el.textContent = ((performance.now() - running.start) / 1000).toFixed(1) + " s"; };
+  tick(); running.ticker = setInterval(() => { if (running && running.worker === worker) tick(); }, 100);
 
   worker.onmessage = (e) => {
     const m = e.data;
