@@ -435,6 +435,12 @@ dialog#args-dialog::backdrop { background: rgba(0,0,0,.45); }
 @media (max-width: 720px) { .ad-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
   .ad-list { border-right: 0; border-bottom: 1px solid var(--border); } }
 /* benchmark rows with a preview (eye) button, and the preview window */
+/* a large input: the editor shows only its start */
+.big-banner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 6px 10px; font-size: 12.5px;
+  background: color-mix(in srgb, var(--warn) 12%, var(--panel)); border-bottom: 1px solid color-mix(in srgb, var(--warn) 35%, var(--border)); }
+.big-banner[hidden] { display: none; }
+.big-banner span { flex: 1 1 240px; }
+.big-banner button { padding: 3px 10px; font-size: 12.5px; }
 .bd-row { display: flex; align-items: stretch; }
 .bd-row > .bd-item { flex: 1; min-width: 0; }
 .bd-eye { flex: none; border: 0; border-radius: 0; background: none; color: var(--muted); padding: 0 14px; display: inline-flex; align-items: center; }
@@ -561,6 +567,10 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <input id="file" type="file" class="hidden" accept=".smt2,.smt,.txt">
       <button id="download" title="Save the input to a file">Save</button>
       <span class="zoom" role="group" aria-label="Input text size" data-zoom="in"><button type="button" data-step="-1" title="Smaller input text" aria-label="Smaller input text"><span class="za">A</span>&minus;</button><button type="button" data-step="1" title="Larger input text" aria-label="Larger input text"><span class="za">A</span>+</button></span>
+    </div>
+    <div id="big-banner" class="big-banner" hidden>
+      <span id="big-text"></span>
+      <button type="button" id="big-load">Load all into the editor</button>
     </div>
     <textarea id="editor"></textarea>
   </section>
@@ -1160,12 +1170,14 @@ const ICONS = {
 };
 let benchTree = null, benchIndex = null, benchDir = [];
 const fmtSize = n => n < 1000 ? `${n} B` : n < 1e6 ? `${+(n / 1e3).toFixed(1)} KB` : `${+(n / 1e6).toFixed(1)} MB`;
+const benchGz = new Set();                       // benchmarks stored as <path>.gz
 async function loadBenchIndex() {
   if (benchTree) return;
   const r = await fetch("benchmarks/index.json");
   if (!r.ok) throw new Error(`cannot load benchmarks/index.json (HTTP ${r.status})`);
   benchIndex = await r.json();
   benchTree = { dirs: new Map(), files: [], count: 0 };
+  for (const [path, , gz] of benchIndex.files) if (gz) benchGz.add(path);
   for (const [path, size] of benchIndex.files) {
     const parts = path.split("/"); let node = benchTree; node.count++;
     for (const d of parts.slice(0, -1)) {
@@ -1232,14 +1244,57 @@ function renderBench() {
   for (const [name, p, size, shown] of node.files.sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true })))
     list.append(benchItem("file", name, fmtSize(size), () => openBenchmark(p, shown), "", () => previewBenchmark(p, shown, size)));
 }
+// Benchmarks over 1 MB are stored gzip-compressed (benchmarks/<path>.gz, marked [path, size, 1] in
+// index.json) and decompressed here.
 const fetchBenchmark = async path => {
-  const r = await fetch("benchmarks/" + path.split("/").map(encodeURIComponent).join("/"));
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  return r.text();
+  if (!benchIndex) await loadBenchIndex().catch(() => {});
+  const url = "benchmarks/" + path.split("/").map(encodeURIComponent).join("/");
+  if (!benchGz.has(path)) {
+    const r = await fetch(url); if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.text();
+  }
+  const r = await fetch(url + ".gz"); if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const buf = new Uint8Array(await r.arrayBuffer());
+  if (buf[0] === 0x1f && buf[1] === 0x8b)        // still compressed (not decoded by the server's Content-Encoding)
+    return new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+  return new TextDecoder().decode(buf);
+};
+// Large inputs: the editor shows only the first lines (read-only); Run, Save and Show model use the full text.
+const LARGE_INPUT = 2e6, LARGE_LINES = 2000;
+let bigInput = null;                               // { text } while the editor shows only the start of the input
+const getInput = () => bigInput ? bigInput.text : editor.getValue();
+function headOf(text, lines) {                    // the first `lines` lines (at most 200 KB of them)
+  let i = -1;
+  for (let n = 0; n < lines; n++) { i = text.indexOf("\n", i + 1); if (i < 0) return text; }
+  return text.slice(0, Math.min(i, 200000));
+}
+function countLines(text) { let n = 1, i = -1; while ((i = text.indexOf("\n", i + 1)) >= 0) n++; return n; }
+function setInput(text) {
+  if (text.length > LARGE_INPUT) {
+    bigInput = { text };
+    editor.setOption("readOnly", true);
+    editor.setValue(headOf(text, LARGE_LINES));
+    $("big-text").textContent = `Large input (${fmtSize(text.length)}, ${countLines(text).toLocaleString()} lines): the editor shows the first ` +
+      `${LARGE_LINES.toLocaleString()} lines, read-only. Run and Save use the whole file.`;
+    $("big-banner").hidden = false;
+  } else {
+    bigInput = null;
+    editor.setOption("readOnly", false);
+    $("big-banner").hidden = true;
+    editor.setValue(text);
+  }
+  editor.refresh();
+}
+$("big-load").onclick = () => {
+  if (!bigInput) return;
+  const text = bigInput.text; bigInput = null;
+  $("big-text").textContent = "Loading the whole input into the editor…";
+  setTimeout(() => { editor.setOption("readOnly", false); editor.setValue(text); $("big-banner").hidden = true; editor.refresh(); }, 30);
 };
 async function openBenchmark(path, shown, text) {
   try {
-    editor.setValue(text !== undefined ? text : await fetchBenchmark(path));
+    if (text === undefined) $("bd-foot").textContent = `Loading ${shownPath(shown || path)}…`;
+    setInput(text !== undefined ? text : await fetchBenchmark(path));
     setInputName(shownPath(shown || path));
     inputPath = "benchmarks/" + path;
     $("bench-dialog").close();
@@ -1256,13 +1311,14 @@ async function previewBenchmark(path, shown, size) {
   pvDlg.showModal();
   if (!pvEditor) pvEditor = CodeMirror($("pv-cm"), { value: "", readOnly: true, mode: "smt2", theme: cmTheme(), lineNumbers: true });
   pvEditor.setOption("theme", cmTheme());
-  pvEditor.setValue("Loading…"); pvEditor.refresh();
+  pvEditor.setValue(benchGz.has(path) ? `Loading and decompressing (${fmtSize(size)})…` : "Loading…"); pvEditor.refresh();
   try {
     const text = await fetchBenchmark(path);
     if (!pvCur || pvCur.path !== path) return;
     pvCur.text = text;
-    pvEditor.setValue(text); pvEditor.scrollTo(0, 0); pvEditor.refresh();
-    $("pv-meta").textContent = `${fmtSize(size)} · ${pvEditor.lineCount().toLocaleString()} lines`;
+    const big = text.length > LARGE_INPUT;
+    pvEditor.setValue(big ? headOf(text, LARGE_LINES) : text); pvEditor.scrollTo(0, 0); pvEditor.refresh();
+    $("pv-meta").textContent = `${fmtSize(size)} · ${countLines(text).toLocaleString()} lines` + (big ? ` · showing the first ${LARGE_LINES.toLocaleString()}` : "");
     $("pv-open").disabled = false; $("pv-open").focus();
   } catch (err) { pvEditor.setValue(`Could not load ${path}: ${err.message}`); }
 }
@@ -1277,8 +1333,8 @@ $("bench").onclick = async () => {
     if (location.protocol === "file:") throw new Error(FILE_PROTOCOL_HELP);
     $("bd-list").replaceChildren(Object.assign(document.createElement("div"), { className: "bd-empty", textContent: "Loading…" }));
     await loadBenchIndex();
-    $("bd-foot").textContent = `${benchIndex.files.length.toLocaleString()} benchmarks of the paper in PBV and EIA. ` +
-      `${benchIndex.omitted.length} files over ${fmtSize(benchIndex.limit)} are not included.`;
+    $("bd-foot").textContent = `${benchIndex.files.length.toLocaleString()} benchmarks of the paper in PBV and EIA.` +
+      (benchIndex.omitted && benchIndex.omitted.length ? ` ${benchIndex.omitted.length} files over ${fmtSize(benchIndex.limit)} are not included.` : "");
     renderBench();
     $("bd-search").focus();
   } catch (err) {
@@ -1292,7 +1348,7 @@ let benchSearchTimer = 0;
 $("bd-search").addEventListener("input", () => { clearTimeout(benchSearchTimer); benchSearchTimer = setTimeout(() => benchTree && renderBench(), 120); });
 $("file").onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
-  editor.setValue(await f.text());
+  setInput(await f.text());
   setInputName(f.name);
   inputPath = f.name;
   e.target.value = "";
@@ -1300,7 +1356,7 @@ $("file").onchange = async e => {
 $("download").onclick = () => {
   const name = inputPath.split("/").pop() || "input.smt2";   // the benchmark's (or opened file's) name
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([editor.getValue()], { type: "text/plain" }));
+  a.href = URL.createObjectURL(new Blob([getInput()], { type: "text/plain" }));
   a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
 $("copy").onclick = () => navigator.clipboard.writeText(out.textContent).then(() => flash($("copy"), "Copied"));
@@ -1624,7 +1680,7 @@ function finish(result, extra) {
 }
 // sat without a model: suggest --produce-models and (get-model), and offer to run again with both
 const hasProduceModels = () => splitArgs(argsIn.value).some(a => /^(--produce-models(=true)?|-m)$/.test(a));
-const hasGetModel = () => /\(\s*get-model\s*\)/.test(editor.getValue().replace(/;[^\n]*/g, ""));
+const hasGetModel = () => /\(\s*get-model\s*\)/.test(getInput().replace(/;[^\n]*/g, ""));
 function modelHint() {
   const flag = hasProduceModels(), cmd = hasGetModel();
   if (flag && cmd) return;
@@ -1647,10 +1703,12 @@ function runWithModel() {
   if (!hasProduceModels()) { argsIn.value = (argsIn.value.trim() + " --produce-models").trim(); syncConfigFromArgs(); }
   if (!hasGetModel()) {
     // after the last (check-sat), else at the end
-    const text = editor.getValue(), re = /\(\s*check-sat\s*\)/g;
+    const text = getInput(), re = /\(\s*check-sat\s*\)/g;
     let m, last = null; while ((m = re.exec(text))) last = m;
     const at = last ? last.index + last[0].length : text.length;
-    editor.replaceRange((last ? "\n" : (text.endsWith("\n") || !text ? "" : "\n")) + "(get-model)", editor.posFromIndex(at));
+    const ins = (last ? "\n" : (text.endsWith("\n") || !text ? "" : "\n")) + "(get-model)";
+    if (bigInput) bigInput.text = text.slice(0, at) + ins + text.slice(at);
+    else editor.replaceRange(ins, editor.posFromIndex(at));
   }
   run();
 }
@@ -1668,7 +1726,7 @@ async function run() {
   if (running) return;
   const [, , solverName, ] = currentConfig();
   const s = SOLVERS[solverName];
-  const input = editor.getValue();
+  const input = getInput();
   let argv = splitArgs(argsIn.value);
   if (argv.includes("{file}")) argv = argv.map(a => (a === "{file}" ? s.file : a));
   else argv.push(s.file);
@@ -1743,7 +1801,7 @@ async function run() {
 // ---------------------------------------------------------------------------
 (async () => {
   applyConfig(CONFIGS[0][0], false);
-  editor.setValue(DEFAULT_INPUT.text);
+  setInput(DEFAULT_INPUT.text);
   setInputName(shownPath(DEFAULT_INPUT.path));
   inputPath = "benchmarks/" + DEFAULT_INPUT.path;
   cfgSel.dataset.prev = cfgSel.value;
