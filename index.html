@@ -548,7 +548,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
   </div>
 </header>
 <main>
-  <section class="controls" aria-label="Solver configuration">
+  <section class="controls collapsed" aria-label="Solver configuration">
   <div class="bar">
     <div class="field cfg-field">
       <label for="config">Configuration</label>
@@ -566,7 +566,7 @@ dialog#bench-dialog::backdrop { background: rgba(0,0,0,.45); }
       <input id="timeout" type="number" min="1" value="60">
     </div>
     <button id="run" class="primary" title="Run (Ctrl+Enter)">Run</button>
-    <button id="arch-toggle" type="button" aria-expanded="true" aria-controls="arch" title="Hide the architecture">
+    <button id="arch-toggle" type="button" aria-expanded="false" aria-controls="arch" title="Show the architecture">
       <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3.5 10l4.5-4.5 4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
   </div>
@@ -1807,7 +1807,8 @@ $("arch-toggle").onclick = () => {
 };
 // initial state without animation
 document.documentElement.classList.add("no-anim");
-try { setArchCollapsed(localStorage.getItem("archCollapsed") === "1"); } catch (e) { setArchCollapsed(false); }
+// hidden by default; shown only if the viewer chose to show it
+try { setArchCollapsed(localStorage.getItem("archCollapsed") !== "0"); } catch (e) { setArchCollapsed(true); }
 requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.remove("no-anim")));
 
 function flash(btn, text) { const t = btn.textContent; btn.textContent = text; setTimeout(() => (btn.textContent = t), 1200); }
